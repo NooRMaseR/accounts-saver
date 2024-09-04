@@ -125,9 +125,7 @@ jobs:
         flutter-version: ${{ env.FLUTTER_VERSION }}
 
     - name: Install CocoaPods dependencies
-      run: |
-        cd ios
-        pod install
+      run: pod install
       working-directory: ios
 
     - name: Build iOS app for testing
