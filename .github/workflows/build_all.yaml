@@ -124,10 +124,6 @@ jobs:
       with:
         flutter-version: ${{ env.FLUTTER_VERSION }}
 
-    - name: Install CocoaPods dependencies
-      run: pod install
-      working-directory: ios
-
     - name: Build iOS app for testing
       run: |
         flutter pub get
@@ -137,6 +133,6 @@ jobs:
       uses: actions/upload-artifact@v4.3.4
       with:
         name: iOS-build-artifact
-        path: build/ios/ipa
+        path: build/ipa
         if-no-files-found: warn
         overwrite: false
