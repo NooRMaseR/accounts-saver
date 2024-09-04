@@ -133,6 +133,6 @@ jobs:
       uses: actions/upload-artifact@v4.3.4
       with:
         name: iOS-build-artifact
-        path: build/ipa
+        path: build/ios/archive
         if-no-files-found: warn
         overwrite: false
