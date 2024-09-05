@@ -17,8 +17,7 @@ on:
 
 env:
   # https://flet.dev/docs/publish#versioning
-  BUILD_NUMBER: 1
-  FLUTTER_VERSION: 3.24.2
+  FLUTTER_VERSION: 3.22.2
 
 jobs:
   build-linux:
@@ -44,7 +43,7 @@ jobs:
       run: |
         flutter pub get
         flutter config --no-analytics 
-        flutter build linux --verbose --build-number=$BUILD_NUMBER
+        flutter build linux --verbose 
 
     - name: Upload Linux Artifact
       uses: actions/upload-artifact@v4.3.4
@@ -70,7 +69,7 @@ jobs:
       run: |
         flutter pub get
         flutter config --no-analytics
-        flutter build macos --verbose --build-number=$BUILD_NUMBER
+        flutter build macos --verbose 
 
     - name: Upload macOS Artifact
       uses: actions/upload-artifact@v4.3.4
@@ -97,7 +96,7 @@ jobs:
       run: |
         flutter pub get
         flutter config --no-analytics
-        flutter build aab --verbose --build-number=$BUILD_NUMBER
+        flutter build aab --verbose 
 
     - name: Upload AAB Artifact
       uses: actions/upload-artifact@v4.3.4
@@ -123,13 +122,13 @@ jobs:
       uses: actions/setup-java@v4.2.1
       with:
         distribution: 'temurin'
-        java-version: '21'
+        java-version: '17'
 
     - name: Flutter Build APK
       run: |
         flutter pub get
         flutter config --no-analytics
-        flutter build apk --verbose --build-number=$BUILD_NUMBER
+        flutter build apk --verbose 
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4.3.4
@@ -155,7 +154,7 @@ jobs:
       run: |
         flutter pub get
         flutter config --no-analytics
-        flutter build ipa --verbose --build-number=$BUILD_NUMBER
+        flutter build ipa --verbose 
 
     - name: Upload IPA Artifact
       uses: actions/upload-artifact@v4.3.4
