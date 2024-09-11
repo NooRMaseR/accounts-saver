@@ -12,8 +12,13 @@ class Sql {
   }
 
   Future<Database> _initialData() async {
-    final String defualtDatabasePath = await getDatabasesPath();
-    final String databasePath = join(defualtDatabasePath, "data.db");
+    String databasePath;
+    try {
+      final String defualtDatabasePath = await getDatabasesPath();
+      databasePath = join(defualtDatabasePath, "data.db");
+    } catch (e) {
+      databasePath = "./";
+    }
     final Database database = await openDatabase(
       databasePath,
       version: 1,
@@ -31,8 +36,6 @@ class Sql {
       Password TEXT
       )
       ''');
-
-    print("Created ========================");
   }
 
   Future<List<Map<String, Object?>>> getAccount(String sql) async {
@@ -77,5 +80,4 @@ class Sql {
 
     return accounts;
   }
-
 }
