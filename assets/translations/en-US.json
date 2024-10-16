@@ -47,5 +47,10 @@
   "set_phone_password": "Set A password for your phone first",
   "search_settings": "Search Settings",
   "error": "Somthing went Wrong, please try again.",
-  "loading": "Loading.."
+  "loading": "Loading..",
+  "fill_missing_fileds": "Please fill up the missing fileds",
+  "language_settings": "Language Settings",
+  "language": "Language",
+  "en": "English",
+  "ar": "Arabic"
 }

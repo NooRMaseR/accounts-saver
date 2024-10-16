@@ -115,10 +115,14 @@ class _AccountsPageState extends State<AccountsPage> {
 
       Navigator.of(context).pop();
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text("Please fill up the missing fileds"),
-        showCloseIcon: true,
-      ));
+      ScaffoldMessenger
+      .of(context)
+      .showSnackBar(
+        SnackBar(
+          content: Text("fill_missing_fileds".tr()),
+          showCloseIcon: true,
+        )
+      );
     }
   }
 
@@ -305,7 +309,7 @@ class _AccountsPageState extends State<AccountsPage> {
       floatingActionButton: FloatingActionButton(
           onPressed: () => Navigator.of(context).push(CupertinoPageRoute(
               builder: (context) => AddAccountPage(onAdd: addAccount))),
-          child: const Icon(Icons.add)),
+          child: const Icon(Icons.add, color: Colors.white,)),
     );
   }
 }

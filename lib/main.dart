@@ -10,9 +10,13 @@ import 'package:flutter/material.dart';
 // Themes
 final ThemeData lightTheme = ThemeData(
   colorScheme: const ColorScheme.light(
-      primary: Colors.blue, secondary: Colors.white, tertiary: Colors.black),
+    primary: Colors.blue, 
+    secondary: Colors.white, 
+    tertiary: Colors.black
+  ),
   useMaterial3: true,
 );
+
 final ThemeData darkTheme = ThemeData(
   colorScheme: const ColorScheme.dark(
     primary: Colors.blue,
@@ -26,13 +30,15 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
   runApp(EasyLocalization(
-      supportedLocales: const [
+      supportedLocales: const <Locale>[
         Locale("en", "US"),
         Locale("ar", "EG"),
       ],
       path: "assets/translations",
       fallbackLocale: const Locale("en", "US"),
-      child: const MyApp()));
+      child: const MyApp()
+    )
+  );
 }
 
 class MyApp extends StatefulWidget {
@@ -70,14 +76,12 @@ class _MyAppState extends State<MyApp> {
 
       case ThemeMode.system:
         Brightness brightness = MediaQuery.of(context).platformBrightness;
-        SystemChrome.setSystemUIOverlayStyle(
-          SystemUiOverlayStyle(
-            statusBarColor: Colors.transparent,
-            systemNavigationBarColor: brightness == Brightness.light 
+        SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          systemNavigationBarColor: brightness == Brightness.light
               ? Colors.transparent
               : Colors.black.withOpacity(.91),
-          )
-        );
+        ));
       default:
     }
   }
@@ -118,9 +122,7 @@ class _MyAppState extends State<MyApp> {
       darkTheme: darkTheme,
       themeMode: thememode,
       home: canAuth && bio == true
-          ? AuthPage(
-              onThemModeChange: _changeTheme,
-            )
+          ? AuthPage(onThemModeChange: _changeTheme)
           : AccountsPage(onThemModeChange: _changeTheme),
     );
   }

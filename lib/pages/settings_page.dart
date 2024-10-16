@@ -36,6 +36,7 @@ class _SettingsPageState extends State<SettingsPage> {
   bool _hideDetails = false;
   late SharedPreferences _data;
   ThemeMode _mode = ThemeMode.system;
+  Locale? _local;
   String? _searchByDropDown = SharedPrefsKeys.all.value;
 
   Future<bool> checkStoragePermission() async {
@@ -65,15 +66,21 @@ class _SettingsPageState extends State<SettingsPage> {
     final String? theme = _data.getString(SharedPrefsKeys.theme.value);
     final String? searchBy = _data.getString(SharedPrefsKeys.searchBy.value);
     final bool? bio = _data.getBool(SharedPrefsKeys.biometric.value);
+    final List<String> storageLocale =
+        (_data.getString("locale") ?? "en_US").split("_");
+
     final bool? hideDetails =
         _data.getBool(SharedPrefsKeys.hideAccountDetails.value);
     setState(() {
-      if (theme == "light") {
-        _mode = ThemeMode.light;
-      } else if (theme == "dark") {
-        _mode = ThemeMode.dark;
-      } else {
-        _mode = ThemeMode.system;
+      switch (theme) {
+        case "light":
+          _mode = ThemeMode.light;
+
+        case "dark":
+          _mode = ThemeMode.dark;
+
+        default:
+          _mode = ThemeMode.system;
       }
 
       if (searchBy != null) {
@@ -87,6 +94,7 @@ class _SettingsPageState extends State<SettingsPage> {
       if (hideDetails == true) {
         _hideDetails = true;
       }
+      _local = Locale(storageLocale[0], storageLocale[1]);
     });
   }
 
@@ -136,19 +144,17 @@ class _SettingsPageState extends State<SettingsPage> {
           dialogTitle: "Pick A place to save the backup file",
           lockParentWindow: true);
 
-      if (path != null) {
-        final File filePath = File("$path/accountsBackup.json");
-        List<Map> newAccounts = [];
-        for (Account account in widget.accounts) {
-          newAccounts.add(account.toJson(account));
-        }
-
-        await filePath.writeAsString(jsonEncode(newAccounts));
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text("backup_successfully".tr()),
-          showCloseIcon: true,
-        ));
+      final File filePath = File("$path/accountsBackup.json");
+      List<Map> newAccounts = [];
+      for (Account account in widget.accounts) {
+        newAccounts.add(account.toJson(account));
       }
+
+      await filePath.writeAsString(jsonEncode(newAccounts));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text("backup_successfully".tr()),
+        showCloseIcon: true,
+      ));
     } else {
       showDialog(
           context: context,
@@ -405,6 +411,24 @@ class _SettingsPageState extends State<SettingsPage> {
                 ],
               ),
 
+              // Search Settings
+              const SizedBox(height: 20),
+              Text("language_settings".tr(), style: titleStyle), // add trans
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text("language".tr()),
+                  DropdownButton(
+                    value: context.locale,
+                    items: languages(),
+                    onChanged: (Locale? value) {
+                      context.setLocale(value!);
+                      _data.setString("locale", value.toString());
+                    },
+                  )
+                ],
+              ),
+
               // backups
               const SizedBox(height: 20),
               Text(
@@ -438,5 +462,16 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
       ),
     );
+  }
+
+  List<DropdownMenuItem<Locale>> languages() {
+    List<DropdownMenuItem<Locale>> drops = [];
+    for (Locale i in context.supportedLocales) {
+      drops.add(
+        DropdownMenuItem<Locale>(
+            value: i, child: Text(i.languageCode.tr())),
+      );
+    }
+    return drops;
   }
 }

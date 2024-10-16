@@ -17,7 +17,7 @@ class Sql {
       final String defualtDatabasePath = await getDatabasesPath();
       databasePath = join(defualtDatabasePath, "data.db");
     } catch (e) {
-      databasePath = "./";
+      databasePath = join("./", "data.db");
     }
     final Database database = await openDatabase(
       databasePath,
