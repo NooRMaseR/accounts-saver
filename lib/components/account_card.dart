@@ -10,8 +10,12 @@ import 'package:flutter/services.dart';
 class AccountCard extends StatefulWidget {
   Account account;
   final void Function(Account account) onDelete;
-  final void Function(Account oldAccount, TextEditingController title,
-      TextEditingController email, TextEditingController password) onEdit;
+  final void Function(
+    Account oldAccount, 
+    TextEditingController title,
+    TextEditingController email, 
+    TextEditingController password
+  ) onEdit;
   final TextStyle textStyle = const TextStyle(fontSize: 18);
   bool accountSecurityEnabled;
   AccountCard(
@@ -61,7 +65,7 @@ class _AccountCardState extends State<AccountCard> {
   void copy(String data, String type) async {
     if (widget.accountSecurityEnabled) {
       if (await authinticatedSuccessfully()) {
-        Clipboard.setData(ClipboardData(text: widget.account.email));
+        Clipboard.setData(ClipboardData(text: type == "email" ? widget.account.email : widget.account.password));
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text("success_${type}_copy".tr()),
           showCloseIcon: true,
