@@ -278,7 +278,7 @@ class _AccountsPageState extends State<AccountsPage> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Center(child: Text("error".tr())),
+                          Center(child: Text("${"error".tr()} ${snapshot.error}")),
                         ],
                       ),
                     );
