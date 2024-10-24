@@ -42,7 +42,7 @@ jobs:
       run: |
         flutter pub get
         flutter config --no-analytics 
-        flutter build linux --verbose 
+        flutter build linux --verbose --no-tree-shake-icons
 
     - name: Upload Linux Artifact
       uses: actions/upload-artifact@v4.3.4
@@ -68,7 +68,7 @@ jobs:
       run: |
         flutter pub get
         flutter config --no-analytics
-        flutter build macos --verbose 
+        flutter build macos --verbose --no-tree-shake-icons
 
     - name: Upload macOS Artifact
       uses: actions/upload-artifact@v4.3.4
@@ -100,7 +100,7 @@ jobs:
       run: |
         flutter pub get
         flutter config --no-analytics
-        flutter build apk --verbose 
+        flutter build apk --verbose --no-tree-shake-icons
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4.3.4
@@ -126,7 +126,7 @@ jobs:
     - name: Build iOS app for testing
       run: |
         flutter pub get
-        flutter build ipa --release --no-codesign --build-number=$BUILD_NUMBER
+        flutter build ipa --no-codesign --no-tree-shake-icons --verbose
 
     - name: Upload IPA file
       uses: actions/upload-artifact@v4.3.4
@@ -151,7 +151,7 @@ jobs:
       - name: Build windows app
         run: |
           flutter pub get
-          flutter build windows --build-number=$BUILD_NUMBER
+          flutter build windows --release --no-tree-shake-icons --verbose
 
       - name: Upload windows file
         uses: actions/upload-artifact@v4.3.4
