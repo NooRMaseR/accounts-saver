@@ -16,8 +16,7 @@ on:
   workflow_dispatch:
 
 env:
-  # https://flet.dev/docs/publish#versioning
-  FLUTTER_VERSION: 3.22.2
+  FLUTTER_VERSION: 3.24.2
 
 jobs:
   build-linux:
