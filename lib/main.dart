@@ -6,14 +6,12 @@ import 'package:accounts_saver/pages/auth_page.dart';
 import 'package:accounts_saver/utils/bio_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 // Themes
 final ThemeData lightTheme = ThemeData(
   colorScheme: const ColorScheme.light(
-    primary: Colors.blue, 
-    secondary: Colors.white, 
-    tertiary: Colors.black
-  ),
+      primary: Colors.blue, secondary: Colors.white, tertiary: Colors.black),
   useMaterial3: true,
 );
 
@@ -27,6 +25,7 @@ final ThemeData darkTheme = ThemeData(
 );
 
 void main() async {
+  sqfliteFfiInit();
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
   runApp(EasyLocalization(
@@ -36,9 +35,7 @@ void main() async {
       ],
       path: "assets/translations",
       fallbackLocale: const Locale("en", "US"),
-      child: const MyApp()
-    )
-  );
+      child: const MyApp()));
 }
 
 class MyApp extends StatefulWidget {
