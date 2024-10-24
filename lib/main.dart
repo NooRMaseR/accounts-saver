@@ -3,10 +3,10 @@ import 'package:accounts_saver/models/common_values.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:accounts_saver/pages/accounts_page.dart';
 import 'package:accounts_saver/pages/auth_page.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:accounts_saver/utils/bio_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 // Themes
 final ThemeData lightTheme = ThemeData(
@@ -28,6 +28,7 @@ void main() async {
   sqfliteFfiInit();
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
+  databaseFactory = databaseFactoryFfi;
   runApp(EasyLocalization(
       supportedLocales: const <Locale>[
         Locale("en", "US"),
