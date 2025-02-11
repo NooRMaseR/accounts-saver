@@ -11,12 +11,12 @@ class Account {
     required this.password,
   });
 
-  Map toJson(Account account) {
+  Map toJson() {
     return {
-      "Id": account.id,
-      "Email": account.email,
-      "Title": account.title,
-      "Password": account.password,
+      "Id": id,
+      "Email": email,
+      "Title": title,
+      "Password": password,
     };
   }
 

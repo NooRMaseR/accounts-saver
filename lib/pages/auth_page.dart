@@ -4,22 +4,15 @@ import 'package:accounts_saver/utils/bio_auth.dart';
 import 'package:flutter/material.dart';
 
 class AuthPage extends StatelessWidget {
-  final void Function(ThemeMode) onThemModeChange;
-  AuthPage({super.key, required this.onThemModeChange});
+  AuthPage({super.key});
   final BioAuth _auth = BioAuth();
 
   Future<void> check(BuildContext context) async {
-    if (await _auth.canAuthintecate()) {
-      if (await _auth.authinticate()) {
-        Navigator.of(context).pushReplacement(MaterialPageRoute(
-            builder: (context) =>
-                AccountsPage(onThemModeChange: onThemModeChange)));
-      }
-    }
-    else {
+    if (await _auth.canAuthintecate() && await _auth.authinticate()) {
+      if (!context.mounted) return;
       Navigator.of(context).pushReplacement(MaterialPageRoute(
           builder: (context) =>
-              AccountsPage(onThemModeChange: onThemModeChange)));
+              AccountsPage()));
     }
   }
 

@@ -1,43 +1,28 @@
 import 'package:accounts_saver/components/custom_elevated_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:accounts_saver/models/common_values.dart';
+import 'package:accounts_saver/utils/widget_states.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:accounts_saver/utils/bio_auth.dart';
 import 'package:accounts_saver/models/account.dart';
 import 'package:accounts_saver/utils/sql.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'dart:io';
 
 class SettingsPage extends StatefulWidget {
-  final void Function(ThemeMode) onThemModeChange;
-  final void Function(bool isHidden) onHideDetails;
-  final void Function(String? onSearchByOptionChange) onSearchByOptionChange;
-  final void Function(List<Account>) onRestoreBackup;
   final BioAuth _auth = BioAuth();
   final Sql db = Sql();
-  List<Account> accounts;
-  SettingsPage(
-      {super.key,
-      required this.accounts,
-      required this.onHideDetails,
-      required this.onRestoreBackup,
-      required this.onThemModeChange,
-      required this.onSearchByOptionChange});
+  SettingsPage({super.key});
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  bool _bioActive = false;
-  bool _hideDetails = false;
   late SharedPreferences _data;
-  ThemeMode _mode = ThemeMode.system;
-  Locale? _local;
-  String? _searchByDropDown = SharedPrefsKeys.all.value;
 
   Future<bool> checkStoragePermission() async {
     PermissionStatus storageStatus = await Permission.storage.status;
@@ -63,38 +48,11 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> initData() async {
     _data = await SharedPreferences.getInstance();
-    final String? theme = _data.getString(SharedPrefsKeys.theme.value);
-    final String? searchBy = _data.getString(SharedPrefsKeys.searchBy.value);
-    final bool? bio = _data.getBool(SharedPrefsKeys.biometric.value);
     final List<String> storageLocale =
         (_data.getString("locale") ?? "en_US").split("_");
 
-    final bool? hideDetails =
-        _data.getBool(SharedPrefsKeys.hideAccountDetails.value);
     setState(() {
-      switch (theme) {
-        case "light":
-          _mode = ThemeMode.light;
-
-        case "dark":
-          _mode = ThemeMode.dark;
-
-        default:
-          _mode = ThemeMode.system;
-      }
-
-      if (searchBy != null) {
-        _searchByDropDown = searchBy;
-      }
-
-      if (bio == true) {
-        _bioActive = true;
-      }
-
-      if (hideDetails == true) {
-        _hideDetails = true;
-      }
-      _local = Locale(storageLocale[0], storageLocale[1]);
+      Locale(storageLocale[0], storageLocale[1]);
     });
   }
 
@@ -104,38 +62,51 @@ class _SettingsPageState extends State<SettingsPage> {
       // if the user want's to close the biomitric
       if (!active) {
         // do authentication
-        if (await widget._auth.authinticate()) {
-          await _data.setBool(SharedPrefsKeys.biometric.value, active);
-          setState(() {
-            _bioActive = active;
-          });
+        if (await widget._auth.authinticate() && mounted) {
+          Provider.of<AccountSecurity>(context, listen: false)
+              .updateBioActive(active);
         }
 
         // if he want to open it when there's no password
       } else {
-        await _data.setBool(SharedPrefsKeys.biometric.value, active);
-        setState(() {
-          _bioActive = active;
-        });
+        if (mounted) {
+          Provider.of<AccountSecurity>(context, listen: false)
+              .updateBioActive(active);
+        }
       }
 
       // if he doesn't have a password
     } else {
-      await _data.setBool(SharedPrefsKeys.biometric.value, false);
-      setState(() {
-        _bioActive = false;
-      });
+      if (mounted) {
+        Provider.of<AccountSecurity>(context, listen: false)
+            .updateBioActive(false);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text("set_phone_password".tr()), showCloseIcon: true));
+      }
+    }
+  }
+
+  Future<void> setHideDetails(bool willActive) async {
+    if (await widget._auth.canAuthintecate()) {
+      if (!willActive) {
+        if (await widget._auth.authinticate() && mounted) {
+          Provider.of<AccountSecurity>(context, listen: false)
+              .updateHideDetails(willActive);
+        }
+      } else {
+        if (mounted) {
+          Provider.of<AccountSecurity>(context, listen: false)
+              .updateHideDetails(willActive);
+        }
+      }
+    } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text("set_phone_password".tr()), showCloseIcon: true));
     }
   }
 
   Future<void> setTheme(ThemeMode? theme) async {
-    await _data.setString(SharedPrefsKeys.theme.value, theme!.name);
-    setState(() {
-      _mode = theme;
-    });
-    widget.onThemModeChange(theme);
+    Provider.of<ThemeState>(context).updateTheme(context, theme!);
   }
 
   Future<void> backup() async {
@@ -144,18 +115,29 @@ class _SettingsPageState extends State<SettingsPage> {
           dialogTitle: "Pick A place to save the backup file",
           lockParentWindow: true);
 
+      // String? path = await FilePicker.platform.saveFile(
+      //   dialogTitle: "Pick A place to save the backup file",
+      //   lockParentWindow: true,
+      //   type: FileType.custom,
+      //   allowedExtensions: ['json'],
+      //   fileName: "accountsBackup.json"
+      // );
+
+      if (path == null) return;
       final File filePath = File("$path/accountsBackup.json");
-      List<Map> newAccounts = [];
-      for (Account account in widget.accounts) {
-        newAccounts.add(account.toJson(account));
-      }
+      List<Map> newAccounts = Provider.of<AccountsState>(context)
+          .accounts
+          .map((account) => account.toJson())
+          .toList();
 
       await filePath.writeAsString(jsonEncode(newAccounts));
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text("backup_successfully".tr()),
-        showCloseIcon: true,
-      ));
-    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text("backup_successfully".tr()),
+          showCloseIcon: true,
+        ));
+      }
+    } else if (mounted) {
       showDialog(
           context: context,
           builder: (context) => AlertDialog.adaptive(
@@ -193,13 +175,14 @@ class _SettingsPageState extends State<SettingsPage> {
         if (fileContent.isNotEmpty) {
           List<Account> accounts = await widget.db.addFromJson(fileContent);
 
-          widget.onRestoreBackup(accounts);
-
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text("backup_restored_successfully".tr()),
-            showCloseIcon: true,
-          ));
-        } else {
+          if (mounted) {
+            Provider.of<AccountsState>(context).addManyAccount(accounts);
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text("backup_restored_successfully".tr()),
+              showCloseIcon: true,
+            ));
+          }
+        } else if (mounted) {
           showDialog(
               context: context,
               builder: (context) => AlertDialog.adaptive(
@@ -213,7 +196,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ));
         }
       }
-    } else {
+    } else if (mounted) {
       showDialog(
           context: context,
           builder: (context) => AlertDialog.adaptive(
@@ -253,55 +236,51 @@ class _SettingsPageState extends State<SettingsPage> {
             children: <Widget>[
               // themes
               Text("themes".tr(), style: titleStyle),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  ChoiceChip.elevated(
-                    selectedColor: const Color.fromARGB(255, 184, 217, 245),
-                    side: BorderSide(
-                      color:
-                          _mode == ThemeMode.system ? Colors.blue : Colors.grey,
+              Consumer<ThemeState>(
+                builder: (context, themeState, child) => Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    ChoiceChip.elevated(
+                      selectedColor: const Color.fromARGB(255, 184, 217, 245),
+                      side: BorderSide(
+                        color: themeState.themeMode == ThemeMode.system
+                            ? Colors.blue
+                            : Colors.grey,
+                      ),
+                      label: Text("system".tr()),
+                      selected: themeState.themeMode == ThemeMode.system,
+                      onSelected: (value) {
+                        themeState.updateTheme(context, ThemeMode.system);
+                      },
                     ),
-                    label: Text("system".tr()),
-                    selected: _mode == ThemeMode.system,
-                    onSelected: (value) {
-                      setTheme(ThemeMode.system);
-                      setState(() {
-                        _mode = ThemeMode.system;
-                      });
-                    },
-                  ),
-                  ChoiceChip.elevated(
-                    selectedColor: const Color.fromARGB(255, 184, 217, 245),
-                    side: BorderSide(
-                      color:
-                          _mode == ThemeMode.light ? Colors.blue : Colors.grey,
+                    ChoiceChip.elevated(
+                      selectedColor: const Color.fromARGB(255, 184, 217, 245),
+                      side: BorderSide(
+                        color: themeState.themeMode == ThemeMode.light
+                            ? Colors.blue
+                            : Colors.grey,
+                      ),
+                      label: Text("light".tr()),
+                      selected: themeState.themeMode == ThemeMode.light,
+                      onSelected: (value) {
+                        themeState.updateTheme(context, ThemeMode.light);
+                      },
                     ),
-                    label: Text("light".tr()),
-                    selected: _mode == ThemeMode.light,
-                    onSelected: (value) {
-                      setTheme(ThemeMode.light);
-                      setState(() {
-                        _mode = ThemeMode.light;
-                      });
-                    },
-                  ),
-                  ChoiceChip.elevated(
-                    selectedColor: const Color.fromARGB(255, 184, 217, 245),
-                    side: BorderSide(
-                      color:
-                          _mode == ThemeMode.dark ? Colors.blue : Colors.grey,
-                    ),
-                    label: Text("dark".tr()),
-                    selected: _mode == ThemeMode.dark,
-                    onSelected: (value) {
-                      setTheme(ThemeMode.dark);
-                      setState(() {
-                        _mode = ThemeMode.dark;
-                      });
-                    },
-                  )
-                ],
+                    ChoiceChip.elevated(
+                      selectedColor: const Color.fromARGB(255, 184, 217, 245),
+                      side: BorderSide(
+                        color: themeState.themeMode == ThemeMode.dark
+                            ? Colors.blue
+                            : Colors.grey,
+                      ),
+                      label: Text("dark".tr()),
+                      selected: themeState.themeMode == ThemeMode.dark,
+                      onSelected: (value) {
+                        themeState.updateTheme(context, ThemeMode.dark);
+                      },
+                    )
+                  ],
+                ),
               ),
 
               // Row(
@@ -343,36 +322,21 @@ class _SettingsPageState extends State<SettingsPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text("use_bio".tr()),
-                  Switch.adaptive(value: _bioActive, onChanged: setBio),
+                  Consumer<AccountSecurity>(
+                    builder: (context, state, child) => Switch.adaptive(
+                        value: state.isBioActive, onChanged: setBio),
+                  )
                 ],
               ),
               Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
                     Text("hide_acc".tr()),
-                    Switch.adaptive(
-                        value: _hideDetails,
-                        onChanged: (bool willActive) async {
-                          if (await widget._auth.canAuthintecate()) {
-                            if (!willActive) {
-                              if (await widget._auth.authinticate()) {
-                                setState(() {
-                                  _hideDetails = willActive;
-                                });
-                                widget.onHideDetails(willActive);
-                              }
-                            } else {
-                              setState(() {
-                                _hideDetails = willActive;
-                              });
-                              widget.onHideDetails(willActive);
-                            }
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                content: Text("set_phone_password".tr()),
-                                showCloseIcon: true));
-                          }
-                        }),
+                    Consumer<AccountSecurity>(
+                      builder: (context, state, child) => Switch.adaptive(
+                          value: state.isDetailsHidden,
+                          onChanged: setHideDetails),
+                    ),
                   ]),
 
               // Search Settings
@@ -382,45 +346,48 @@ class _SettingsPageState extends State<SettingsPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text("search_by".tr()),
-                  DropdownButton(
-                      value: _searchByDropDown,
-                      items: [
-                        DropdownMenuItem(
-                          value: "email type",
-                          child: Text("emailType".tr()),
-                        ),
-                        DropdownMenuItem(
-                          value: "email",
-                          child: Text("email".tr()),
-                        ),
-                        DropdownMenuItem(
-                          value: "password",
-                          child: Text("password".tr()),
-                        ),
-                        DropdownMenuItem(
-                          value: "all",
-                          child: Text("all".tr()),
-                        ),
-                      ],
-                      onChanged: (value) {
-                        setState(() {
-                          _searchByDropDown = value;
-                        });
-                        widget.onSearchByOptionChange(value);
-                      }),
+                  Consumer<SearchByState>(
+                    builder: (context, state, child) => DropdownButton(
+                        value: state.searchBy,
+                        items: [
+                          DropdownMenuItem(
+                            value: "email type",
+                            child: Text("emailType".tr()),
+                          ),
+                          DropdownMenuItem(
+                            value: "email",
+                            child: Text("email".tr()),
+                          ),
+                          DropdownMenuItem(
+                            value: "password",
+                            child: Text("password".tr()),
+                          ),
+                          DropdownMenuItem(
+                            value: "all",
+                            child: Text("all".tr()),
+                          ),
+                        ],
+                        onChanged: (newvalue) {
+                          state.updateSearchBy(newvalue!);
+                        }),
+                  ),
                 ],
               ),
 
-              // Search Settings
+              // language Settings
               const SizedBox(height: 20),
               Text("language_settings".tr(), style: titleStyle), // add trans
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text("language".tr()),
-                  DropdownButton(
+                  DropdownButton<Locale>(
                     value: context.locale,
-                    items: languages(),
+                    items: context.supportedLocales
+                        .map((local) => DropdownMenuItem(
+                            value: local,
+                            child: Text(local.languageCode.toString())))
+                        .toList(),
                     onChanged: (Locale? value) {
                       context.setLocale(value!);
                       _data.setString("locale", value.toString());
@@ -462,16 +429,5 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
       ),
     );
-  }
-
-  List<DropdownMenuItem<Locale>> languages() {
-    List<DropdownMenuItem<Locale>> drops = [];
-    for (Locale i in context.supportedLocales) {
-      drops.add(
-        DropdownMenuItem<Locale>(
-            value: i, child: Text(i.languageCode.tr())),
-      );
-    }
-    return drops;
   }
 }
