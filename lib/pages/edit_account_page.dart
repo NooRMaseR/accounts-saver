@@ -1,17 +1,20 @@
 import 'package:accounts_saver/components/custom_textfiled.dart';
-import 'package:accounts_saver/models/account.dart';
+import 'package:accounts_saver/utils/widget_states.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:accounts_saver/models/account.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class EditAccountPage extends StatelessWidget {
-  final void Function(
-    Account oldAccount,
-    TextEditingController title,
-    TextEditingController email,
-    TextEditingController password,
-  ) onEditCompleted;
   final Account account;
-  const EditAccountPage({super.key, required this.account, required this.onEditCompleted});
+  const EditAccountPage({super.key, required this.account});
+
+  void onEditCompleted(BuildContext context, Account oldAccount, String title,
+      String email, String password) {
+    Provider.of<AccountsState>(context, listen: false)
+        .dbUpdateAccount(title, email, password, oldAccount);
+    Navigator.of(context).pop();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +57,12 @@ class EditAccountPage extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () => onEditCompleted(account, titleController, emailController, passwordController),
+                onPressed: () => onEditCompleted(
+                    context,
+                    account,
+                    titleController.text,
+                    emailController.text,
+                    passwordController.text),
                 style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,
                     shape: RoundedRectangleBorder(

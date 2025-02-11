@@ -1,20 +1,29 @@
 import 'package:accounts_saver/components/custom_textfiled.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:accounts_saver/utils/widget_states.dart';
+import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 
 class AddAccountPage extends StatelessWidget {
-  final void Function(
-    TextEditingController title,
-    TextEditingController email,
-    TextEditingController password,
-  ) onAdd;
-  const AddAccountPage({super.key, required this.onAdd});
+  const AddAccountPage({super.key});
+
+  void onAdd(BuildContext context, String title, String email, String password) {
+    if (title.isNotEmpty && email.isNotEmpty && password.isNotEmpty) {
+      Provider.of<AccountsState>(context, listen: false).dbAddAccount(title, email, password);
+      Navigator.of(context).pop();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text("fill_missing_fileds".tr()),
+        showCloseIcon: true,
+      ));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    TextEditingController titleController = TextEditingController();
-    TextEditingController emailController = TextEditingController();
-    TextEditingController passwordController = TextEditingController();
+    final TextEditingController titleController = TextEditingController();
+    final TextEditingController emailController = TextEditingController();
+    final TextEditingController passwordController = TextEditingController();
 
     return Scaffold(
       appBar: AppBar(
@@ -26,7 +35,7 @@ class AddAccountPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             // title
-             CustomTextfiled(
+            CustomTextfiled(
               controller: titleController,
               label: "emailType".tr(),
             ),
@@ -51,7 +60,8 @@ class AddAccountPage extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () => onAdd(titleController, emailController, passwordController),
+                onPressed: () => onAdd(context, titleController.text,
+                    emailController.text, passwordController.text),
                 style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,
                     shape: RoundedRectangleBorder(

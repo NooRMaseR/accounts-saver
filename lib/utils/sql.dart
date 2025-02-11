@@ -29,7 +29,7 @@ class Sql {
 
   void _create(Database db, int version) async {
     await db.execute('''
-      CREATE TABLE accounts (
+      CREATE TABLE IF NOT EXISTS accounts (
       Id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
       Title TEXT,
       Email TEXT,
@@ -66,16 +66,16 @@ class Sql {
     List<dynamic> data = jsonDecode(jsonContent);
     List<Account> accounts = [];
 
-    for (var data in data) {
-      int ID = await addAccount('''
-        INSERT INTO accounts ("Title", "Email", "Password") VALUES ("${data["Title"]}", "${data["Email"]}", "${data["Password"]}")
+    for (var acc in data) {
+      int id = await addAccount('''
+        INSERT INTO accounts ("Title", "Email", "Password") VALUES ("${acc["Title"]}", "${acc["Email"]}", "${acc["Password"]}")
         ''');
 
       accounts.add(Account(
-          id: ID,
-          title: data["Title"],
-          email: data["Email"],
-          password: data["Password"]));
+          id: id,
+          title: acc["Title"],
+          email: acc["Email"],
+          password: acc["Password"]));
     }
 
     return accounts;

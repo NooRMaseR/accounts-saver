@@ -2,12 +2,13 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 	<dict>
-		<key>NSDocumentsFolderUsageDescription</key>
-		<string>We need access to your documents folder to save the backup file.</string>
 		<key>NSFaceIDUsageDescription</key>
-		<string>Need access to Face ID for authentication</string>
-		<key>NSBiometricsUsageDescription</key>
-		<string>Need access to biometrics for authentication</string>
+		<string>Please Verify yourself</string>
+		<key>UIBackgroundModes</key>
+		<array>
+			<string>fetch</string>
+			<string>remote-notification</string>
+		</array>
 		<key>CFBundleDevelopmentRegion</key>
 		<string>$(DEVELOPMENT_LANGUAGE)</string>
 		<key>CFBundleDisplayName</key>
@@ -46,11 +47,6 @@
 			<string>UIInterfaceOrientationPortraitUpsideDown</string>
 			<string>UIInterfaceOrientationLandscapeLeft</string>
 			<string>UIInterfaceOrientationLandscapeRight</string>
-		</array>
-		<key>CFBundleLocalizations</key>
-		<array>
-			<string>en</string>
-			<string>ar</string>
 		</array>
 		<key>CADisableMinimumFrameDurationOnPhone</key>
 		<true/>
