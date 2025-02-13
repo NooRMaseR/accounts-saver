@@ -1,8 +1,8 @@
 import 'package:accounts_saver/components/custom_elevated_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:accounts_saver/utils/widget_states.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:accounts_saver/utils/widget_states.dart';
 import 'package:accounts_saver/utils/bio_auth.dart';
 import 'package:accounts_saver/models/account.dart';
 import 'package:accounts_saver/utils/sql.dart';

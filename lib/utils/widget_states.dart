@@ -5,7 +5,7 @@ import 'package:accounts_saver/utils/sql.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-class ThemeState with ChangeNotifier {
+class ThemeState extends ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.system;
   ThemeMode get themeMode => _themeMode;
   late SharedPreferences _data;
@@ -57,7 +57,7 @@ class ThemeState with ChangeNotifier {
   }
 }
 
-class SearchByState with ChangeNotifier {
+class SearchByState extends ChangeNotifier {
   String _searchBy = 'all';
   String get searchBy => _searchBy;
 
@@ -80,7 +80,7 @@ class SearchByState with ChangeNotifier {
   }
 }
 
-class AccountSecurity with ChangeNotifier {
+class AccountSecurity extends ChangeNotifier {
   bool _bioActive = false;
   bool _hideDetails = false;
   late SharedPreferences _data;
@@ -113,10 +113,11 @@ class AccountSecurity with ChangeNotifier {
   }
 }
 
-class AccountsState with ChangeNotifier {
+class AccountsState extends ChangeNotifier {
   final List<Account> _accounts = [];
   List<Account> get accounts => _accounts;
   Sql db = Sql();
+
 
   void dbAddAccount(String title, String email, String password) async {
     int id = await db.addAccount('''
@@ -161,6 +162,26 @@ class AccountsState with ChangeNotifier {
     accounts[index].title = title;
     accounts[index].email = email;
     accounts[index].password = password;
+    notifyListeners();
+  }
+}
+
+class CurrentExpandedAccount extends ChangeNotifier {
+  int _currentAccountId = -1;
+  int _previosAccountId = -1;
+
+  int get currentAccountId => _currentAccountId;
+  int get previosAccountId => _previosAccountId;
+
+  void setCurrentAccountID(int id) {
+    final i = _currentAccountId;
+    _currentAccountId = id;
+    if (_previosAccountId != i) {
+      _previosAccountId = i;
+    } 
+    if (_previosAccountId == _currentAccountId) {
+      _previosAccountId = -1;
+    }
     notifyListeners();
   }
 }

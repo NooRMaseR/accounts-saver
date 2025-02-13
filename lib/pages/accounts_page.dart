@@ -37,17 +37,17 @@ class _AccountsPageState extends State<AccountsPage> {
 
   Future<List<Account>> getData() async {
     Provider.of<AccountsState>(context, listen: false).accounts.clear();
+    Provider.of<CurrentExpandedAccount>(context, listen: false).setCurrentAccountID(-1);
     _filterdAccounts.value.clear();
     List<Map<String, Object?>> accountsFound =
         await db.getAccount('SELECT * FROM "accounts"');
 
     if (mounted) {
       Provider.of<AccountsState>(context, listen: false).addManyAccount(
-          accountsFound.map((account) => Account.fromObject(account)).toList()
-      );
-      _filterdAccounts.value = Provider.of<AccountsState>(context, listen: false).accounts;
+          accountsFound.map((account) => Account.fromObject(account)).toList());
+      _filterdAccounts.value =
+          Provider.of<AccountsState>(context, listen: false).accounts;
     }
-
 
     return _filterdAccounts.value;
   }
@@ -194,18 +194,19 @@ class _AccountsPageState extends State<AccountsPage> {
                   } else {
                     return Expanded(
                         child: Consumer<AccountsState>(
-                            builder: (BuildContext context, AccountsState state, Widget? child) => ListView
-                                .builder(
+                            builder: (BuildContext context, AccountsState state,
+                                    Widget? child) =>
+                                ListView.builder(
                                     itemCount: _filterdAccounts.value.length,
                                     itemBuilder: (BuildContext context,
                                             int index) =>
                                         Consumer<AccountSecurity>(
-                                            builder: (context, stateSC,
-                                                    child) =>
+                                            builder: (context, stateSC, child) =>
                                                 AccountCard(
                                                     accountSecurityEnabled:
                                                         stateSC.isDetailsHidden,
-                                                    account: _filterdAccounts.value[index])))));
+                                                    account: _filterdAccounts
+                                                        .value[index])))));
                   }
                 }),
           ],

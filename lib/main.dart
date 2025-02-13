@@ -25,14 +25,24 @@ final ThemeData darkTheme = ThemeData(
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
-  runApp(EasyLocalization(
-      supportedLocales: const <Locale>[
-        Locale("en", "US"),
-        Locale("ar", "EG"),
-      ],
-      path: "assets/translations",
-      fallbackLocale: const Locale("en", "US"),
-      child: const MyApp()));
+  runApp(
+    MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (context) => ThemeState()),
+          ChangeNotifierProvider(create: (context) => AccountSecurity()),
+          ChangeNotifierProvider(create: (context) => AccountsState()),
+          ChangeNotifierProvider(create: (context) => SearchByState()),
+          ChangeNotifierProvider(create: (context) => CurrentExpandedAccount()),
+        ],
+        child: EasyLocalization(
+            supportedLocales: const <Locale>[
+              Locale("en", "US"),
+              Locale("ar", "EG"),
+            ],
+            path: "assets/translations",
+            fallbackLocale: const Locale("en", "US"),
+            child: const MyApp())),
+  );
 }
 
 class MyApp extends StatefulWidget {
@@ -60,17 +70,20 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeState>(
-        builder: (context, themeState, child) => MaterialApp(
-              debugShowCheckedModeBanner: false,
-              localizationsDelegates: context.localizationDelegates,
-              supportedLocales: context.supportedLocales,
-              locale: context.locale,
-              title: 'Account Saver',
-              theme: lightTheme,
-              darkTheme: darkTheme,
-              themeMode: themeState.themeMode,
-              home:
-                  canAuth && Provider.of<AccountSecurity>(context).isBioActive ? AuthPage() : AccountsPage(),
-            ));
+        builder: (consumertContext, themeState, child) => MaterialApp(
+            debugShowCheckedModeBanner: false,
+            localizationsDelegates: context.localizationDelegates,
+            supportedLocales: context.supportedLocales,
+            locale: context.locale,
+            title: 'Account Saver',
+            theme: lightTheme,
+            darkTheme: darkTheme,
+            themeMode: themeState.themeMode,
+            home: canAuth
+                ? Consumer<AccountSecurity>(
+                    builder: (context, accountState, _) =>
+                        accountState.isBioActive ? AuthPage() : AccountsPage(),
+                  )
+                : AccountsPage()));
   }
 }
