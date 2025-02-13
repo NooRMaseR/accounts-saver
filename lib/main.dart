@@ -25,21 +25,14 @@ final ThemeData darkTheme = ThemeData(
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
-  runApp(MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (context) => ThemeState()),
-        ChangeNotifierProvider(create: (context) => SearchByState()),
-        ChangeNotifierProvider(create: (context) => AccountSecurity()),
-        ChangeNotifierProvider(create: (context) => AccountsState()),
+  runApp(EasyLocalization(
+      supportedLocales: const <Locale>[
+        Locale("en", "US"),
+        Locale("ar", "EG"),
       ],
-      child: EasyLocalization(
-          supportedLocales: const <Locale>[
-            Locale("en", "US"),
-            Locale("ar", "EG"),
-          ],
-          path: "assets/translations",
-          fallbackLocale: const Locale("en", "US"),
-          child: const MyApp())));
+      path: "assets/translations",
+      fallbackLocale: const Locale("en", "US"),
+      child: const MyApp()));
 }
 
 class MyApp extends StatefulWidget {
