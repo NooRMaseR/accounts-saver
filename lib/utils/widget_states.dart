@@ -95,8 +95,7 @@ class AccountSecurity extends ChangeNotifier {
   void _getData() async {
     _data = await SharedPreferences.getInstance();
     _bioActive = _data.getBool(SharedPrefsKeys.biometric.value) ?? false;
-    _hideDetails =
-        _data.getBool(SharedPrefsKeys.hideAccountDetails.value) ?? false;
+    _hideDetails = _data.getBool(SharedPrefsKeys.hideAccountDetails.value) ?? false;
     notifyListeners();
   }
 
@@ -117,7 +116,6 @@ class AccountsState extends ChangeNotifier {
   final List<Account> _accounts = [];
   List<Account> get accounts => _accounts;
   Sql db = Sql();
-
 
   void dbAddAccount(String title, String email, String password) async {
     int id = await db.addAccount('''
@@ -167,21 +165,23 @@ class AccountsState extends ChangeNotifier {
 }
 
 class CurrentExpandedAccount extends ChangeNotifier {
-  int _currentAccountId = -1;
-  int _previosAccountId = -1;
+  int? _currentAccountId;
+  int? _previosAccountId;
 
-  int get currentAccountId => _currentAccountId;
-  int get previosAccountId => _previosAccountId;
+  int? get currentAccountId => _currentAccountId;
+  int? get previosAccountId => _previosAccountId;
 
-  void setCurrentAccountID(int id) {
+  void setCurrentAccountID(int? id) {
     final i = _currentAccountId;
     _currentAccountId = id;
     if (_previosAccountId != i) {
       _previosAccountId = i;
-    } 
-    if (_previosAccountId == _currentAccountId) {
-      _previosAccountId = -1;
     }
-    notifyListeners();
+    if (_previosAccountId == _currentAccountId) {
+      _previosAccountId = null;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
   }
 }

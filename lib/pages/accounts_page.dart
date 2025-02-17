@@ -37,7 +37,7 @@ class _AccountsPageState extends State<AccountsPage> {
 
   Future<List<Account>> getData() async {
     Provider.of<AccountsState>(context, listen: false).accounts.clear();
-    Provider.of<CurrentExpandedAccount>(context, listen: false).setCurrentAccountID(-1);
+    Provider.of<CurrentExpandedAccount>(context, listen: false).setCurrentAccountID(null);
     _filterdAccounts.value.clear();
     List<Map<String, Object?>> accountsFound =
         await db.getAccount('SELECT * FROM "accounts"');

@@ -1,3 +1,5 @@
+import 'package:accounts_saver/models/common_values.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:accounts_saver/utils/widget_states.dart';
 import 'package:accounts_saver/pages/accounts_page.dart';
@@ -55,6 +57,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   final BioAuth _auth = BioAuth();
   bool canAuth = false;
+  bool isBioActive = false;
 
   @override
   void initState() {
@@ -64,6 +67,8 @@ class _MyAppState extends State<MyApp> {
 
   void initData() async {
     canAuth = await _auth.canAuthintecate();
+    SharedPreferences data = await SharedPreferences.getInstance();
+    isBioActive = data.getBool(SharedPrefsKeys.biometric.value) ?? false;
     setState(() {});
   }
 
@@ -79,11 +84,7 @@ class _MyAppState extends State<MyApp> {
             theme: lightTheme,
             darkTheme: darkTheme,
             themeMode: themeState.themeMode,
-            home: canAuth
-                ? Consumer<AccountSecurity>(
-                    builder: (context, accountState, _) =>
-                        accountState.isBioActive ? AuthPage() : AccountsPage(),
-                  )
-                : AccountsPage()));
+            home: canAuth && isBioActive ? AuthPage() : AccountsPage(),
+    ));
   }
 }
