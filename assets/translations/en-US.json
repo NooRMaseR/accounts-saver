@@ -32,6 +32,7 @@
   "need_storage_permission_details": "This App Need The Premission To Access the Storage to get/create backup file, please accept it",
   "open_settings": "Open App Settings",
   "backup_restored_successfully": "Backup Restored Successfully ✔",
+  "backup_restored_failed": "Backup Restored Faild, Please make sure the file is not corrupted",
   "backup_successfully": "Accounts Backup Successfully ✔",
   "ok": "Ok",
   "empty_file": "The File Is Empty",

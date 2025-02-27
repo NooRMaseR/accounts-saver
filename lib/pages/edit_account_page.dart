@@ -1,6 +1,6 @@
 import 'package:accounts_saver/components/custom_textfiled.dart';
-import 'package:accounts_saver/utils/widget_states.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:accounts_saver/utils/widget_states.dart';
 import 'package:accounts_saver/models/account.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';

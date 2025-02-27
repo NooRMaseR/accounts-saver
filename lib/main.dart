@@ -74,7 +74,8 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ThemeState>(
+    return Selector<ThemeState, ThemeMode>(
+      selector: (context, currentTheme) => currentTheme.themeMode,
         builder: (consumertContext, themeState, child) => MaterialApp(
             debugShowCheckedModeBanner: false,
             localizationsDelegates: context.localizationDelegates,
@@ -83,7 +84,7 @@ class _MyAppState extends State<MyApp> {
             title: 'Account Saver',
             theme: lightTheme,
             darkTheme: darkTheme,
-            themeMode: themeState.themeMode,
+            themeMode: themeState,
             home: canAuth && isBioActive ? AuthPage() : AccountsPage(),
     ));
   }

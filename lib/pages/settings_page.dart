@@ -111,26 +111,25 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> backup() async {
     if (await checkStoragePermission()) {
-      String? path = await FilePicker.platform.getDirectoryPath(
+      // String? path = await FilePicker.platform.getDirectoryPath(
+      //     dialogTitle: "Pick A place to save the backup file",
+      //     lockParentWindow: true);
+
+      String encodedData = base64Encode(utf8.encode(jsonEncode({
+        "accounts": Provider.of<AccountsState>(context, listen: false)
+            .accounts
+            .map((account) => account.toJson())
+            .toList()
+      })));
+
+      await FilePicker.platform.saveFile(
           dialogTitle: "Pick A place to save the backup file",
-          lockParentWindow: true);
+          lockParentWindow: true,
+          type: FileType.custom,
+          allowedExtensions: ['json'],
+          fileName: "accountsBackup.json",
+          bytes: utf8.encode(encodedData));
 
-      // String? path = await FilePicker.platform.saveFile(
-      //   dialogTitle: "Pick A place to save the backup file",
-      //   lockParentWindow: true,
-      //   type: FileType.custom,
-      //   allowedExtensions: ['json'],
-      //   fileName: "accountsBackup.json"
-      // );
-
-      if (path == null) return;
-      final File filePath = File("$path/accountsBackup.json");
-      List<Map> newAccounts = Provider.of<AccountsState>(context)
-          .accounts
-          .map((account) => account.toJson())
-          .toList();
-
-      await filePath.writeAsString(jsonEncode(newAccounts));
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text("backup_successfully".tr()),
@@ -168,19 +167,40 @@ class _SettingsPageState extends State<SettingsPage> {
           allowedExtensions: ["json"],
           lockParentWindow: true);
 
-      if (files != null || files!.files.isNotEmpty == true) {
+      if (files != null || files!.files.isNotEmpty) {
         final File file = File(files.files.first.path!);
 
         String fileContent = await file.readAsString();
         if (fileContent.isNotEmpty) {
-          List<Account> accounts = await widget.db.addFromJson(fileContent);
+          try {
+            String decodedData = utf8.decode(base64Decode(fileContent));
+            List<Account> accounts = await widget.db.addFromJson(decodedData);
+            if (mounted) {
+              if (accounts.isNotEmpty) {
+                AccountsState accountsState =
+                    Provider.of<AccountsState>(context, listen: false);
+                if (accountsState.accounts.isEmpty) {
+                  accountsState.doRefresh = true;
+                }
+                accountsState.addManyAccount(accounts);
 
-          if (mounted) {
-            Provider.of<AccountsState>(context).addManyAccount(accounts);
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text("backup_restored_successfully".tr()),
+                  showCloseIcon: true,
+                ));
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text("backup_restored_failed".tr()),
+                  showCloseIcon: true,
+                ));
+              }
+            }
+          } catch (e) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text("backup_restored_successfully".tr()),
+              content: Text("backup_restored_failed".tr()),
               showCloseIcon: true,
             ));
+            return;
           }
         } else if (mounted) {
           showDialog(
@@ -236,47 +256,51 @@ class _SettingsPageState extends State<SettingsPage> {
             children: <Widget>[
               // themes
               Text("themes".tr(), style: titleStyle),
-              Consumer<ThemeState>(
-                builder: (context, themeState, child) => Row(
+              Selector<ThemeState, ThemeMode>(
+                selector: (context, themeState) => themeState.themeMode,
+                builder: (context, currentTheme, child) => Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     ChoiceChip.elevated(
                       selectedColor: const Color.fromARGB(255, 184, 217, 245),
                       side: BorderSide(
-                        color: themeState.themeMode == ThemeMode.system
+                        color: currentTheme == ThemeMode.system
                             ? Colors.blue
                             : Colors.grey,
                       ),
                       label: Text("system".tr()),
-                      selected: themeState.themeMode == ThemeMode.system,
+                      selected: currentTheme == ThemeMode.system,
                       onSelected: (value) {
-                        themeState.updateTheme(context, ThemeMode.system);
+                        Provider.of<ThemeState>(context, listen: false)
+                            .updateTheme(context, ThemeMode.system);
                       },
                     ),
                     ChoiceChip.elevated(
                       selectedColor: const Color.fromARGB(255, 184, 217, 245),
                       side: BorderSide(
-                        color: themeState.themeMode == ThemeMode.light
+                        color: currentTheme == ThemeMode.light
                             ? Colors.blue
                             : Colors.grey,
                       ),
                       label: Text("light".tr()),
-                      selected: themeState.themeMode == ThemeMode.light,
+                      selected: currentTheme == ThemeMode.light,
                       onSelected: (value) {
-                        themeState.updateTheme(context, ThemeMode.light);
+                        Provider.of<ThemeState>(context, listen: false)
+                            .updateTheme(context, ThemeMode.light);
                       },
                     ),
                     ChoiceChip.elevated(
                       selectedColor: const Color.fromARGB(255, 184, 217, 245),
                       side: BorderSide(
-                        color: themeState.themeMode == ThemeMode.dark
+                        color: currentTheme == ThemeMode.dark
                             ? Colors.blue
                             : Colors.grey,
                       ),
                       label: Text("dark".tr()),
-                      selected: themeState.themeMode == ThemeMode.dark,
+                      selected: currentTheme == ThemeMode.dark,
                       onSelected: (value) {
-                        themeState.updateTheme(context, ThemeMode.dark);
+                        Provider.of<ThemeState>(context, listen: false)
+                            .updateTheme(context, ThemeMode.dark);
                       },
                     )
                   ],
@@ -322,9 +346,10 @@ class _SettingsPageState extends State<SettingsPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text("use_bio".tr()),
-                  Consumer<AccountSecurity>(
-                    builder: (context, state, child) => Switch.adaptive(
-                        value: state.isBioActive, onChanged: setBio),
+                  Selector<AccountSecurity, bool>(
+                    selector: (context, state) => state.isBioActive,
+                    builder: (context, isBioActive, child) =>
+                        Switch.adaptive(value: isBioActive, onChanged: setBio),
                   )
                 ],
               ),
@@ -332,10 +357,12 @@ class _SettingsPageState extends State<SettingsPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
                     Text("hide_acc".tr()),
-                    Consumer<AccountSecurity>(
-                      builder: (context, state, child) => Switch.adaptive(
-                          value: state.isDetailsHidden,
-                          onChanged: setHideDetails),
+                    Selector<AccountSecurity, bool>(
+                      selector: (context, state) => state.isDetailsHidden,
+                      builder: (context, isDetailsHidden, child) =>
+                          Switch.adaptive(
+                              value: isDetailsHidden,
+                              onChanged: setHideDetails),
                     ),
                   ]),
 

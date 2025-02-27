@@ -21,12 +21,9 @@ class AccountsPage extends StatefulWidget {
 
 class _AccountsPageState extends State<AccountsPage> {
   final Sql db = Sql();
-  final ValueNotifier<List<Account>> _filterdAccounts =
-      ValueNotifier<List<Account>>([]);
   late Future<List<Account>> _futuredAccounts;
   final FocusNode _searchBarFocus = FocusNode();
   final TextEditingController _searchController = TextEditingController();
-  final ValueNotifier<bool> isDetailsHidden = ValueNotifier<bool>(false);
 
   @override
   void initState() {
@@ -36,27 +33,29 @@ class _AccountsPageState extends State<AccountsPage> {
   }
 
   Future<List<Account>> getData() async {
-    Provider.of<AccountsState>(context, listen: false).accounts.clear();
-    Provider.of<CurrentExpandedAccount>(context, listen: false).setCurrentAccountID(null);
-    _filterdAccounts.value.clear();
+    AccountsState accountsState =
+        Provider.of<AccountsState>(context, listen: false);
+    accountsState.accounts.clear();
+    Provider.of<CurrentExpandedAccount>(context, listen: false)
+        .currentAccountID = null;
     List<Map<String, Object?>> accountsFound =
         await db.getAccount('SELECT * FROM "accounts"');
 
     if (mounted) {
-      Provider.of<AccountsState>(context, listen: false).addManyAccount(
+      accountsState.addManyAccount(
           accountsFound.map((account) => Account.fromObject(account)).toList());
-      _filterdAccounts.value =
-          Provider.of<AccountsState>(context, listen: false).accounts;
+      accountsState.filterdAccounts = accountsState.accounts;
     }
 
-    return _filterdAccounts.value;
+    return accountsState.filterdAccounts;
   }
 
   void _setAccounts(String query, String searchBy) {
     List<Account> accountsFound = _searchData(query, searchBy);
-    _filterdAccounts.value = accountsFound.isEmpty
-        ? Provider.of<AccountsState>(context).accounts
-        : accountsFound;
+    AccountsState accountsState =
+        Provider.of<AccountsState>(context, listen: false);
+    accountsState.filterdAccounts =
+        accountsFound.isEmpty ? accountsState.accounts : accountsFound;
   }
 
   List<Account> _searchData(String query, String searchBy) {
@@ -125,8 +124,9 @@ class _AccountsPageState extends State<AccountsPage> {
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 10),
-                    child: Consumer<SearchByState>(
-                      builder: (context, state, child) => SearchBar(
+                    child: Selector<SearchByState, String>(
+                      selector: (context, state) => state.searchBy,
+                      builder: (context, searchBy, child) => SearchBar(
                         controller: _searchController,
                         focusNode: _searchBarFocus,
                         leading: const Icon(Icons.search),
@@ -134,15 +134,19 @@ class _AccountsPageState extends State<AccountsPage> {
                             ? null
                             : [
                                 IconButton(
-                                    onPressed: () => setState(() {
-                                          _searchController.clear();
-                                          _searchBarFocus.previousFocus();
-                                        }),
+                                    onPressed: () {
+                                      _searchController.clear();
+                                      _searchBarFocus.previousFocus();
+                                      AccountsState accountsState =
+                                          Provider.of<AccountsState>(context,
+                                              listen: false);
+                                      accountsState.filterdAccounts =
+                                          accountsState.accounts;
+                                    },
                                     icon: const Icon(Icons.close_rounded))
                               ],
                         hintText: "search".tr(),
-                        onChanged: (value) =>
-                            _setAccounts(value, state.searchBy),
+                        onChanged: (value) => _setAccounts(value, searchBy),
                         onTapOutside: (event) =>
                             _searchBarFocus.previousFocus(),
                       ),
@@ -151,63 +155,78 @@ class _AccountsPageState extends State<AccountsPage> {
                 ],
               ),
             ),
-            FutureBuilder(
-                future: _futuredAccounts,
-                builder: (BuildContext context,
-                    AsyncSnapshot<List<Account>> snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Center(
-                              child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text("loading".tr()),
-                              const SizedBox(width: 20),
-                              const CircularProgressIndicator(),
-                            ],
-                          )),
-                        ],
-                      ),
-                    );
-                  } else if (snapshot.hasError) {
-                    return Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Center(
-                              child: Text("${"error".tr()} ${snapshot.error}")),
-                        ],
-                      ),
-                    );
-                  } else if (snapshot.data!.isEmpty) {
-                    return Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Center(child: Text("when_no_accounts".tr())),
-                        ],
-                      ),
-                    );
-                  } else {
-                    return Expanded(
-                        child: Consumer<AccountsState>(
-                            builder: (BuildContext context, AccountsState state,
-                                    Widget? child) =>
-                                ListView.builder(
-                                    itemCount: _filterdAccounts.value.length,
-                                    itemBuilder: (BuildContext context,
-                                            int index) =>
-                                        Consumer<AccountSecurity>(
-                                            builder: (context, stateSC, child) =>
-                                                AccountCard(
-                                                    accountSecurityEnabled:
-                                                        stateSC.isDetailsHidden,
-                                                    account: _filterdAccounts
-                                                        .value[index])))));
+            Selector<AccountsState, bool>(
+                selector: (context, state) => state.doRefresh,
+                builder: (context, shouldRefresh, child) {
+                  if (shouldRefresh) {
+                    _futuredAccounts = getData();
+                    Provider.of<AccountsState>(context, listen: false)
+                        .doRefresh = false;
                   }
+                  return FutureBuilder(
+                      future: _futuredAccounts,
+                      builder: (BuildContext context,
+                          AsyncSnapshot<List<Account>> snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return Expanded(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Center(
+                                    child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text("loading".tr()),
+                                    const SizedBox(width: 20),
+                                    const CircularProgressIndicator(),
+                                  ],
+                                )),
+                              ],
+                            ),
+                          );
+                        } else if (snapshot.hasError) {
+                          return Expanded(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Center(
+                                    child: Text(
+                                        "${"error".tr()} ${snapshot.error}")),
+                              ],
+                            ),
+                          );
+                        } else if (snapshot.data!.isEmpty) {
+                          return Expanded(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Center(child: Text("when_no_accounts".tr())),
+                              ],
+                            ),
+                          );
+                        } else {
+                          return Expanded(
+                              child: Selector<AccountsState, List<Account>>(
+                                  selector: (context, state) =>
+                                      state.filterdAccounts,
+                                  builder: (context, accounts, child) =>
+                                      ListView.builder(
+                                          itemCount: accounts.length,
+                                          itemBuilder: (context, index) =>
+                                              Selector<AccountSecurity, bool>(
+                                                  selector: (context, state) =>
+                                                      state.isDetailsHidden,
+                                                  builder: (context,
+                                                          isDetailsHidden,
+                                                          child) =>
+                                                      AccountCard(
+                                                          accountSecurityEnabled:
+                                                              isDetailsHidden,
+                                                          account:
+                                                              accounts[index])))));
+                        }
+                      });
                 }),
           ],
         ),

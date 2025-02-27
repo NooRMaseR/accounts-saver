@@ -63,21 +63,25 @@ class Sql {
   }
 
   Future<List<Account>> addFromJson(String jsonContent) async {
-    List<dynamic> data = jsonDecode(jsonContent);
-    List<Account> accounts = [];
+    try {
+      List<dynamic> data = jsonDecode(jsonContent)['accounts'];
+      List<Account> accounts = [];
 
-    for (var acc in data) {
-      int id = await addAccount('''
-        INSERT INTO accounts ("Title", "Email", "Password") VALUES ("${acc["Title"]}", "${acc["Email"]}", "${acc["Password"]}")
-        ''');
+      for (var acc in data) {
+        int id = await addAccount('''
+          INSERT INTO accounts ("Title", "Email", "Password") VALUES ("${acc["Title"]}", "${acc["Email"]}", "${acc["Password"]}")
+          ''');
 
-      accounts.add(Account(
-          id: id,
-          title: acc["Title"],
-          email: acc["Email"],
-          password: acc["Password"]));
+        accounts.add(Account(
+            id: id,
+            title: acc["Title"],
+            email: acc["Email"],
+            password: acc["Password"]));
+      }
+
+      return accounts;
+    } catch (e) {
+      return Future.error(Exception("File is Currepted"));
     }
-
-    return accounts;
   }
 }
