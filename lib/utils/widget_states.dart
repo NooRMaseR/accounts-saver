@@ -95,7 +95,8 @@ class AccountSecurity extends ChangeNotifier {
   void _getData() async {
     _data = await SharedPreferences.getInstance();
     _bioActive = _data.getBool(SharedPrefsKeys.biometric.value) ?? false;
-    _hideDetails = _data.getBool(SharedPrefsKeys.hideAccountDetails.value) ?? false;
+    _hideDetails =
+        _data.getBool(SharedPrefsKeys.hideAccountDetails.value) ?? false;
     notifyListeners();
   }
 
@@ -114,8 +115,28 @@ class AccountSecurity extends ChangeNotifier {
 
 class AccountsState extends ChangeNotifier {
   final List<Account> _accounts = [];
+  final List<Account> _filterdAccounts = [];
+  bool _doRefresh = false;
+
   List<Account> get accounts => _accounts;
+  List<Account> get filterdAccounts => _filterdAccounts;
+  bool get doRefresh => _doRefresh;
   Sql db = Sql();
+
+  set doRefresh(bool value) {
+    _doRefresh = value;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
+  }
+
+  set filterdAccounts(List<Account> value) {
+    if (_filterdAccounts == value) return;
+    _filterdAccounts
+      ..clear()
+      ..addAll(value);
+    notifyListeners();
+  }
 
   void dbAddAccount(String title, String email, String password) async {
     int id = await db.addAccount('''
@@ -126,12 +147,12 @@ class AccountsState extends ChangeNotifier {
 
   void addAccount(Account account) {
     _accounts.add(account);
-    notifyListeners();
+    filterdAccounts = _accounts;
   }
 
   void addManyAccount(List<Account> accounts) {
     _accounts.addAll(accounts);
-    notifyListeners();
+    filterdAccounts = _accounts;
   }
 
   void dbRemoveAccount(Account account) async {
@@ -143,7 +164,7 @@ class AccountsState extends ChangeNotifier {
 
   void removeAccount(int id) {
     _accounts.removeWhere((element) => element.id == id);
-    notifyListeners();
+    filterdAccounts = _accounts;
   }
 
   void dbUpdateAccount(
@@ -160,27 +181,17 @@ class AccountsState extends ChangeNotifier {
     accounts[index].title = title;
     accounts[index].email = email;
     accounts[index].password = password;
-    notifyListeners();
+    filterdAccounts = _accounts;
   }
 }
 
 class CurrentExpandedAccount extends ChangeNotifier {
   int? _currentAccountId;
-  int? _previosAccountId;
-
   int? get currentAccountId => _currentAccountId;
-  int? get previosAccountId => _previosAccountId;
 
-  void setCurrentAccountID(int? id) {
-    final i = _currentAccountId;
+  set currentAccountId(int? id) {
     _currentAccountId = id;
-    if (_previosAccountId != i) {
-      _previosAccountId = i;
-    }
-    if (_previosAccountId == _currentAccountId) {
-      _previosAccountId = null;
-    }
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    Future.microtask(() {
       notifyListeners();
     });
   }

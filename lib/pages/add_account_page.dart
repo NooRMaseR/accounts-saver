@@ -7,9 +7,14 @@ import 'package:flutter/material.dart';
 class AddAccountPage extends StatelessWidget {
   const AddAccountPage({super.key});
 
-  void onAdd(BuildContext context, String title, String email, String password) {
+  void onAdd(
+      BuildContext context, String title, String email, String password) {
     if (title.isNotEmpty && email.isNotEmpty && password.isNotEmpty) {
-      Provider.of<AccountsState>(context, listen: false).dbAddAccount(title, email, password);
+      AccountsState accountsState = context.read<AccountsState>();
+      if (accountsState.accounts.isEmpty) {
+        accountsState.doRefresh = true;
+      }
+      accountsState.dbAddAccount(title, email, password);
       Navigator.of(context).pop();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(

@@ -5,7 +5,12 @@ class CustomAppbar extends StatelessWidget {
   final bool? noContent;
   final Widget? noContentChild;
   final double height;
-  const CustomAppbar({super.key, required this.child, this.noContent, this.noContentChild, this.height = 170});
+  const CustomAppbar(
+      {super.key,
+      required this.child,
+      this.noContent,
+      this.noContentChild,
+      this.height = 170});
 
   @override
   Widget build(BuildContext context) {
