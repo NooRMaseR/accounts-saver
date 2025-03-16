@@ -1,5 +1,5 @@
-import 'package:accounts_saver/models/common_values.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:accounts_saver/models/common_values.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:accounts_saver/utils/widget_states.dart';
 import 'package:accounts_saver/pages/accounts_page.dart';
@@ -35,6 +35,7 @@ void main() async {
           ChangeNotifierProvider(create: (context) => AccountsState()),
           ChangeNotifierProvider(create: (context) => SearchByState()),
           ChangeNotifierProvider(create: (context) => CurrentExpandedAccount()),
+          ChangeNotifierProvider(create: (context) => LocaleState()),
         ],
         child: EasyLocalization(
             supportedLocales: const <Locale>[
@@ -67,9 +68,14 @@ class _MyAppState extends State<MyApp> {
 
   void initData() async {
     canAuth = await _auth.canAuthintecate();
-    SharedPreferences data = await SharedPreferences.getInstance();
+    final SharedPreferences data = await SharedPreferences.getInstance();
+    final List<String> storageLocale = (data.getString("locale") ?? "en_US").split("_");
     isBioActive = data.getBool(SharedPrefsKeys.biometric.value) ?? false;
-    setState(() {});
+    if (!mounted) return;
+    context.read<LocaleState>().currentLocale = Locale(storageLocale[0], storageLocale[1]);
+    setState(() {
+      Locale(storageLocale[0], storageLocale[1]);
+    });
   }
 
   @override

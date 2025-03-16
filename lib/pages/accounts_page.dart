@@ -21,14 +21,12 @@ class AccountsPage extends StatefulWidget {
 
 class _AccountsPageState extends State<AccountsPage> {
   final Sql db = Sql();
-  late Future<List<Account>> _futuredAccounts;
   final FocusNode _searchBarFocus = FocusNode();
   final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _futuredAccounts = getData();
     _searchController.addListener(() => setState(() {}));
   }
 
@@ -107,9 +105,7 @@ class _AccountsPageState extends State<AccountsPage> {
                             color: Colors.white),
                       ),
                       IconButton(
-                          onPressed: () => Navigator.of(context).push(
-                              CupertinoPageRoute(
-                                  builder: (context) => SettingsPage())),
+                          onPressed: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => SettingsPage())),
                           icon: const Icon(
                             Icons.settings_outlined,
                             color: Colors.white,
@@ -154,27 +150,26 @@ class _AccountsPageState extends State<AccountsPage> {
                 selector: (context, state) => state.doRefresh,
                 builder: (context, shouldRefresh, child) {
                   if (shouldRefresh) {
-                    _futuredAccounts = getData();
                     context.read<AccountsState>().doRefresh = false;
                   }
                   return FutureBuilder(
-                      future: _futuredAccounts,
+                      future: getData(),
                       builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
                           return Expanded(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: <Widget>[
                                 Center(
-                                    child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text("loading".tr()),
-                                    const SizedBox(width: 20),
-                                    const CircularProgressIndicator(),
-                                  ],
-                                )),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: <Widget>[
+                                      Text("loading".tr()),
+                                      const SizedBox(width: 20),
+                                      const CircularProgressIndicator(),
+                                    ],
+                                  )
+                                ),
                               ],
                             ),
                           );

@@ -196,3 +196,13 @@ class CurrentExpandedAccount extends ChangeNotifier {
     });
   }
 }
+
+class LocaleState extends ChangeNotifier {
+  Locale? _currentLocale = Locale("en", "US");
+
+  Locale get currentLocale => _currentLocale!;
+  set currentLocale(Locale? newLocale) {
+    _currentLocale = newLocale;
+    notifyListeners();
+  }
+}

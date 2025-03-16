@@ -87,7 +87,7 @@ class _AccountCardState extends State<AccountCard> {
   void onDelete(Account accountToDelete) {
     AccountsState accountsState = context.read<AccountsState>();
     accountsState.dbRemoveAccount(accountToDelete);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    Future.microtask(() {
       if (accountsState.accounts.isEmpty) {
         accountsState.doRefresh = true;
       }

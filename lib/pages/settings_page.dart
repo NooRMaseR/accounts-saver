@@ -1,5 +1,4 @@
 import 'package:accounts_saver/components/custom_elevated_button.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:accounts_saver/utils/widget_states.dart';
@@ -22,7 +21,6 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   final BioAuth _auth = BioAuth();
   final Sql db = Sql();
-  late SharedPreferences _data;
 
   Future<bool> checkStoragePermission() async {
     PermissionStatus storageStatus = await Permission.storage.status;
@@ -38,22 +36,6 @@ class _SettingsPageState extends State<SettingsPage> {
     }
 
     return storageStatus.isGranted || manageStorageStatus.isGranted;
-  }
-
-  @override
-  void initState() {
-    initData();
-    super.initState();
-  }
-
-  Future<void> initData() async {
-    _data = await SharedPreferences.getInstance();
-    final List<String> storageLocale =
-        (_data.getString("locale") ?? "en_US").split("_");
-
-    setState(() {
-      Locale(storageLocale[0], storageLocale[1]);
-    });
   }
 
   Future<void> setBio(bool active) async {
@@ -105,9 +87,10 @@ class _SettingsPageState extends State<SettingsPage> {
       // String? path = await FilePicker.platform.getDirectoryPath(
       //     dialogTitle: "Pick A place to save the backup file",
       //     lockParentWindow: true);
-
+      if (!mounted) return;
       String encodedData = base64Encode(utf8.encode(jsonEncode({
-        "accounts": context.read<AccountsState>()
+        "accounts": context
+            .read<AccountsState>()
             .accounts
             .map((account) => account.toJson())
             .toList()
@@ -168,7 +151,8 @@ class _SettingsPageState extends State<SettingsPage> {
             List<Account> accounts = await db.addFromJson(decodedData);
             if (mounted) {
               if (accounts.isNotEmpty) {
-                AccountsState accountsState = context.read<AccountsState>();if (accountsState.accounts.isEmpty) {
+                AccountsState accountsState = context.read<AccountsState>();
+                if (accountsState.accounts.isEmpty) {
                   accountsState.doRefresh = true;
                 }
                 accountsState.addManyAccount(accounts);
@@ -185,6 +169,7 @@ class _SettingsPageState extends State<SettingsPage> {
               }
             }
           } catch (e) {
+            if (!mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text("backup_restored_failed".tr()),
               showCloseIcon: true,
@@ -260,7 +245,9 @@ class _SettingsPageState extends State<SettingsPage> {
                       label: Text("system".tr()),
                       selected: currentTheme == ThemeMode.system,
                       onSelected: (value) {
-                        context.read<ThemeState>().updateTheme(context, ThemeMode.system);
+                        context
+                            .read<ThemeState>()
+                            .updateTheme(context, ThemeMode.system);
                       },
                     ),
                     ChoiceChip.elevated(
@@ -273,7 +260,9 @@ class _SettingsPageState extends State<SettingsPage> {
                       label: Text("light".tr()),
                       selected: currentTheme == ThemeMode.light,
                       onSelected: (value) {
-                        context.read<ThemeState>().updateTheme(context, ThemeMode.light);
+                        context
+                            .read<ThemeState>()
+                            .updateTheme(context, ThemeMode.light);
                       },
                     ),
                     ChoiceChip.elevated(
@@ -286,7 +275,9 @@ class _SettingsPageState extends State<SettingsPage> {
                       label: Text("dark".tr()),
                       selected: currentTheme == ThemeMode.dark,
                       onSelected: (value) {
-                        context.read<ThemeState>().updateTheme(context, ThemeMode.dark);
+                        context
+                            .read<ThemeState>()
+                            .updateTheme(context, ThemeMode.dark);
                       },
                     )
                   ],
@@ -362,18 +353,22 @@ class _SettingsPageState extends State<SettingsPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text("language".tr()),
-                  DropdownButton<Locale>(
-                    value: context.locale,
-                    items: context.supportedLocales
-                        .map((local) => DropdownMenuItem(
-                            value: local,
-                            child: Text(local.languageCode.toString())))
-                        .toList(),
-                    onChanged: (Locale? value) {
-                      context.setLocale(value!);
-                      _data.setString("locale", value.toString());
-                    },
-                  )
+                  Selector<LocaleState, Locale>(
+                      selector: (context, state) => state.currentLocale,
+                      builder: (context, currentLocale, child) {
+                        return DropdownButton<Locale>(
+                          value: context.locale,
+                          items: context.supportedLocales
+                              .map((local) => DropdownMenuItem(
+                                  value: local,
+                                  child: Text(local.languageCode)))
+                              .toList(),
+                          onChanged: (Locale? value) {
+                            context.read<LocaleState>().currentLocale = value;
+                            context.setLocale(value!);
+                          },
+                        );
+                      })
                 ],
               ),
 
