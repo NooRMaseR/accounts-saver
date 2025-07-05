@@ -38,13 +38,15 @@ void main() async {
           ChangeNotifierProvider(create: (context) => LocaleState()),
         ],
         child: EasyLocalization(
-            supportedLocales: const <Locale>[
-              Locale("en", "US"),
-              Locale("ar", "EG"),
-            ],
-            path: "assets/translations",
-            fallbackLocale: const Locale("en", "US"),
-            child: const MyApp())),
+          supportedLocales: const <Locale>[
+            Locale("en", "US"),
+            Locale("ar", "EG"),
+          ],
+          path: "assets/translations",
+          fallbackLocale: const Locale("en", "US"),
+          child: const MyApp()
+        )
+    ),
   );
 }
 

@@ -84,25 +84,22 @@ class _AccountsPageState extends State<AccountsPage> {
         backgroundColor: Colors.white,
         onRefresh: getData,
         child: Column(
-          children: [
+          children: <Widget>[
             CustomAppbar(
               child: Column(
-                children: [
-                  const SizedBox(
-                    height: 35,
-                  ),
+                children: <Widget>[
+                  const SizedBox(height: 35),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const SizedBox(
-                        width: 40,
-                      ),
+                    children: <Widget>[
+                      const SizedBox(width: 40),
                       Text(
                         "appbar_title".tr(),
                         style: const TextStyle(
-                            fontSize: 25,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white),
+                          fontSize: 25,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white
+                        ),
                       ),
                       IconButton(
                           onPressed: () => Navigator.of(context).push(CupertinoPageRoute(builder: (context) => SettingsPage())),
@@ -117,29 +114,34 @@ class _AccountsPageState extends State<AccountsPage> {
                     padding: const EdgeInsets.symmetric(horizontal: 10),
                     child: Selector<SearchByState, String>(
                       selector: (context, state) => state.searchBy,
-                      builder: (context, searchBy, child) => SearchBar(
-                        controller: _searchController,
-                        focusNode: _searchBarFocus,
-                        leading: const Icon(Icons.search),
-                        trailing: _searchController.text.isEmpty
-                            ? null
-                            : <Widget>[
-                                IconButton(
-                                    onPressed: () {
-                                      _searchController.clear();
-                                      _searchBarFocus.previousFocus();
-                                      AccountsState accountsState =
-                                          Provider.of<AccountsState>(context,
-                                              listen: false);
-                                      accountsState.filterdAccounts =
-                                          accountsState.accounts;
-                                    },
-                                    icon: const Icon(Icons.close_rounded))
-                              ],
-                        hintText: "search".tr(),
-                        onChanged: (value) => _setAccounts(value, searchBy),
-                        onTapOutside: (event) =>
-                            _searchBarFocus.previousFocus(),
+                      builder: (context, searchBy, child) => ValueListenableBuilder(
+                        valueListenable: _searchController,
+                        builder: (context, controller, child) {
+                          return SearchBar(
+                            controller: _searchController,
+                            focusNode: _searchBarFocus,
+                            leading: const Icon(Icons.search),
+                            trailing: controller.text.isEmpty
+                                ? null
+                                : <Widget>[
+                                    IconButton(
+                                        onPressed: () {
+                                          _searchController.clear();
+                                          _searchBarFocus.previousFocus();
+                                          AccountsState accountsState =
+                                              Provider.of<AccountsState>(context,
+                                                  listen: false);
+                                          accountsState.filterdAccounts =
+                                              accountsState.accounts;
+                                        },
+                                        icon: const Icon(Icons.close_rounded))
+                                  ],
+                            hintText: "search".tr(),
+                            onChanged: (value) => _setAccounts(value, searchBy),
+                            onTapOutside: (event) =>
+                                _searchBarFocus.previousFocus(),
+                          );
+                        }
                       ),
                     ),
                   )

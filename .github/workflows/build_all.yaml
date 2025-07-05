@@ -16,7 +16,7 @@ on:
   workflow_dispatch:
 
 env:
-  FLUTTER_VERSION: 3.27.4
+  FLUTTER_VERSION: 3.32.5
 
 jobs:
   build-linux:
@@ -24,10 +24,10 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v4.1.1
 
     - name: Setup Flutter ${{ env.FLUTTER_VERSION }}
-      uses: subosito/flutter-action@v2
+      uses: subosito/flutter-action@v2.16.0
       with:
         flutter-version: ${{ env.FLUTTER_VERSION }}
 
@@ -42,6 +42,7 @@ jobs:
       run: |
         flutter pub get
         flutter config --no-analytics 
+        sudo apt-get -y install libsqlite3-0 libsqlite3-dev
         flutter build linux --verbose --no-tree-shake-icons
 
     - name: Upload Linux Artifact
@@ -57,10 +58,10 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v4.1.1
 
     - name: Setup Flutter ${{ env.FLUTTER_VERSION }}
-      uses: subosito/flutter-action@v2
+      uses: subosito/flutter-action@v2.16.0
       with:
         flutter-version: ${{ env.FLUTTER_VERSION }}
 
@@ -83,10 +84,10 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v4.1.1
 
     - name: Setup Flutter ${{ env.FLUTTER_VERSION }}
-      uses: subosito/flutter-action@v2
+      uses: subosito/flutter-action@v2.16.0
       with:
         flutter-version: ${{ env.FLUTTER_VERSION }}
 
@@ -94,12 +95,13 @@ jobs:
       uses: actions/setup-java@v4.2.1
       with:
         distribution: 'temurin'
-        java-version: '19'
+        java-version: '21'
 
     - name: Flutter Build APK
       run: |
         flutter pub get
         flutter config --no-analytics
+        yes | flutter doctor --android-licenses
         flutter build apk --verbose --no-tree-shake-icons
 
     - name: Upload APK Artifact
@@ -116,10 +118,10 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v4.1.1
 
     - name: Setup Flutter ${{ env.FLUTTER_VERSION }}
-      uses: subosito/flutter-action@v2
+      uses: subosito/flutter-action@v2.16.0
       with:
         flutter-version: ${{ env.FLUTTER_VERSION }}
 
@@ -141,10 +143,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.1.1
 
       - name: Setup Flutter ${{ env.FLUTTER_VERSION }}
-        uses: subosito/flutter-action@v2
+        uses: subosito/flutter-action@v2.16.0
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
 
