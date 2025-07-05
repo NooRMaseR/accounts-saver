@@ -59,8 +59,12 @@ class _SettingsPageState extends State<SettingsPage> {
     } else {
       if (mounted) {
         context.read<AccountSecurity>().updateBioActive(false);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text("set_phone_password".tr()), showCloseIcon: true));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("set_phone_password".tr()),
+            showCloseIcon: true,
+          ),
+        );
       }
     }
   }
@@ -77,8 +81,9 @@ class _SettingsPageState extends State<SettingsPage> {
         }
       }
     } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text("set_phone_password".tr()), showCloseIcon: true));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("set_phone_password".tr()), showCloseIcon: true),
+      );
     }
   }
 
@@ -88,140 +93,218 @@ class _SettingsPageState extends State<SettingsPage> {
       //     dialogTitle: "Pick A place to save the backup file",
       //     lockParentWindow: true);
       if (!mounted) return;
-      String encodedData = base64Encode(utf8.encode(jsonEncode({
-        "accounts": context
-            .read<AccountsState>()
-            .accounts
-            .map((account) => account.toJson())
-            .toList()
-      })));
+      String encodedData = base64Encode(
+        utf8.encode(
+          jsonEncode({
+            "accounts": context
+                .read<AccountsState>()
+                .accounts
+                .map((account) => account.toJson())
+                .toList(),
+          }),
+        ),
+      );
 
-      await FilePicker.platform.saveFile(
-          dialogTitle: "Pick A place to save the backup file",
-          lockParentWindow: true,
-          type: FileType.custom,
-          allowedExtensions: ['json'],
-          fileName: "accountsBackup.json",
-          bytes: utf8.encode(encodedData));
+      final String? s = await FilePicker.platform.saveFile(
+        dialogTitle: "Pick A place to save the backup file",
+        lockParentWindow: true,
+        type: FileType.custom,
+        allowedExtensions: ['json'],
+        fileName: "accountsBackup.json",
+        bytes: utf8.encode(encodedData),
+      );
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text("backup_successfully".tr()),
-          showCloseIcon: true,
-        ));
+      if (s != null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("backup_successfully".tr()),
+            showCloseIcon: true,
+          ),
+        );
       }
     } else if (mounted) {
       showDialog(
-          context: context,
-          builder: (context) => AlertDialog.adaptive(
-                title: Text("need_storage_permission".tr()),
-                content: Text("need_storage_permission_details".tr()),
-                actions: [
-                  ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      child: Text("cancel".tr())),
-                  ElevatedButton(
-                      onPressed: () async {
-                        Navigator.of(context).pop();
-                        await openAppSettings();
-                      },
-                      child: Text("open_settings".tr()))
-                ],
-              ));
+        context: context,
+        builder: (context) => AlertDialog.adaptive(
+          title: Text("need_storage_permission".tr()),
+          content: Text("need_storage_permission_details".tr()),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text("cancel".tr()),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await openAppSettings();
+              },
+              child: Text("open_settings".tr()),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  void onSuccessRestore(List<Account> accounts) {
+    if (mounted) {
+      if (accounts.isNotEmpty) {
+        AccountsState accountsState = context.read<AccountsState>();
+        if (accountsState.accounts.isEmpty) {
+          accountsState.doRefresh = true;
+        }
+        accountsState.addManyAccount(accounts);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("backup_restored_successfully".tr()),
+            showCloseIcon: true,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("backup_restored_failed".tr()),
+            showCloseIcon: true,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> addMoreOnRestore(String fileContent) async {
+    try {
+      String decodedData = utf8.decode(base64Decode(fileContent));
+      List<Account> accounts = await db.addFromJson(decodedData);
+      onSuccessRestore(accounts);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("backup_restored_failed".tr()),
+          showCloseIcon: true,
+        ),
+      );
+      return;
+    }
+  }
+
+  Future<void> replaceOnRestore(String fileContent) async {
+    try {
+      String decodedData = utf8.decode(base64Decode(fileContent));
+      await db.deleteAccount("DELETE FROM accounts");
+      List<Account> accounts = await db.addFromJson(decodedData);
+      onSuccessRestore(accounts);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("backup_restored_failed".tr()),
+          showCloseIcon: true,
+        ),
+      );
+      return;
     }
   }
 
   Future<void> restoreBackup() async {
     if (await checkStoragePermission()) {
       FilePickerResult? files = await FilePicker.platform.pickFiles(
-          dialogTitle: "Pick The File To Restore",
-          type: FileType.custom,
-          allowedExtensions: ["json"],
-          lockParentWindow: true);
+        dialogTitle: "Pick The File To Restore",
+        type: FileType.custom,
+        allowedExtensions: ["json"],
+        lockParentWindow: true,
+      );
 
-      if (files != null || files!.files.isNotEmpty) {
+      if (files != null && files.files.isNotEmpty) {
         final File file = File(files.files.first.path!);
 
         String fileContent = await file.readAsString();
-        if (fileContent.isNotEmpty) {
-          try {
-            String decodedData = utf8.decode(base64Decode(fileContent));
-            List<Account> accounts = await db.addFromJson(decodedData);
-            if (mounted) {
-              if (accounts.isNotEmpty) {
-                AccountsState accountsState = context.read<AccountsState>();
-                if (accountsState.accounts.isEmpty) {
-                  accountsState.doRefresh = true;
-                }
-                accountsState.addManyAccount(accounts);
 
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  content: Text("backup_restored_successfully".tr()),
-                  showCloseIcon: true,
-                ));
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  content: Text("backup_restored_failed".tr()),
-                  showCloseIcon: true,
-                ));
-              }
-            }
-          } catch (e) {
-            if (!mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text("backup_restored_failed".tr()),
-              showCloseIcon: true,
-            ));
-            return;
-          }
+        if (fileContent.isNotEmpty && mounted) {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog.adaptive(
+              title: Text("dlg_on_restore_title".tr()),
+              content: Text("dlg_on_restore_details".tr()),
+              actionsAlignment: MainAxisAlignment.start,
+              actions: [
+                ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text("cancel".tr()),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    Navigator.of(context).pop();
+                    await replaceOnRestore(fileContent);
+                  },
+                  child: Text(
+                    "replace".tr(),
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    Navigator.of(context).pop();
+                    await addMoreOnRestore(fileContent);
+                  },
+                  child: Text("append".tr()),
+                ),
+              ],
+            ),
+          );
         } else if (mounted) {
           showDialog(
-              context: context,
-              builder: (context) => AlertDialog.adaptive(
-                    title: Text("empty_file".tr()),
-                    content: Text("empty_file_details".tr()),
-                    actions: [
-                      ElevatedButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: Text("ok".tr())),
-                    ],
-                  ));
+            context: context,
+            builder: (context) => AlertDialog.adaptive(
+              title: Text("empty_file".tr()),
+              content: Text("empty_file_details".tr()),
+              actions: [
+                ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text("ok".tr()),
+                ),
+              ],
+            ),
+          );
         }
       }
     } else if (mounted) {
       showDialog(
-          context: context,
-          builder: (context) => AlertDialog.adaptive(
-                title: Text("need_storage_permission".tr()),
-                content: Text("need_storage_permission_details".tr()),
-                actions: [
-                  ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      child: Text("cancel".tr())),
-                  ElevatedButton(
-                      onPressed: () async {
-                        Navigator.of(context).pop();
-                        await openAppSettings();
-                      },
-                      child: Text("open_settings".tr()))
-                ],
-              ));
+        context: context,
+        builder: (context) => AlertDialog.adaptive(
+          title: Text("need_storage_permission".tr()),
+          content: Text("need_storage_permission_details".tr()),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text("cancel".tr()),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await openAppSettings();
+              },
+              child: Text("open_settings".tr()),
+            ),
+          ],
+        ),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    const TextStyle titleStyle =
-        TextStyle(fontSize: 20, fontWeight: FontWeight.bold);
+    const TextStyle titleStyle = TextStyle(
+      fontSize: 20,
+      fontWeight: FontWeight.bold,
+    );
     return Scaffold(
-      appBar: AppBar(
-        title: Text("settings".tr()),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: Text("settings".tr()), centerTitle: true),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: SingleChildScrollView(
@@ -245,9 +328,10 @@ class _SettingsPageState extends State<SettingsPage> {
                       label: Text("system".tr()),
                       selected: currentTheme == ThemeMode.system,
                       onSelected: (value) {
-                        context
-                            .read<ThemeState>()
-                            .updateTheme(context, ThemeMode.system);
+                        context.read<ThemeState>().updateTheme(
+                          context,
+                          ThemeMode.system,
+                        );
                       },
                     ),
                     ChoiceChip.elevated(
@@ -260,9 +344,10 @@ class _SettingsPageState extends State<SettingsPage> {
                       label: Text("light".tr()),
                       selected: currentTheme == ThemeMode.light,
                       onSelected: (value) {
-                        context
-                            .read<ThemeState>()
-                            .updateTheme(context, ThemeMode.light);
+                        context.read<ThemeState>().updateTheme(
+                          context,
+                          ThemeMode.light,
+                        );
                       },
                     ),
                     ChoiceChip.elevated(
@@ -275,11 +360,12 @@ class _SettingsPageState extends State<SettingsPage> {
                       label: Text("dark".tr()),
                       selected: currentTheme == ThemeMode.dark,
                       onSelected: (value) {
-                        context
-                            .read<ThemeState>()
-                            .updateTheme(context, ThemeMode.dark);
+                        context.read<ThemeState>().updateTheme(
+                          context,
+                          ThemeMode.dark,
+                        );
                       },
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -295,53 +381,53 @@ class _SettingsPageState extends State<SettingsPage> {
                     selector: (context, state) => state.isBioActive,
                     builder: (context, isBioActive, child) =>
                         Switch.adaptive(value: isBioActive, onChanged: setBio),
-                  )
+                  ),
                 ],
               ),
               Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Text("hide_acc".tr()),
-                    Selector<AccountSecurity, bool>(
-                      selector: (context, state) => state.isDetailsHidden,
-                      builder: (context, isDetailsHidden, child) =>
-                          Switch.adaptive(
-                              value: isDetailsHidden,
-                              onChanged: setHideDetails),
-                    ),
-                  ]),
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Text("hide_acc".tr()),
+                  Selector<AccountSecurity, bool>(
+                    selector: (context, state) => state.isDetailsHidden,
+                    builder: (context, isDetailsHidden, child) =>
+                        Switch.adaptive(
+                          value: isDetailsHidden,
+                          onChanged: setHideDetails,
+                        ),
+                  ),
+                ],
+              ),
 
               // Search Settings
               const SizedBox(height: 20),
               Text("search_settings".tr(), style: titleStyle),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
+                children: <Widget>[
                   Text("search_by".tr()),
                   Consumer<SearchByState>(
                     builder: (context, state, child) => DropdownButton(
-                        value: state.searchBy,
-                        items: [
-                          DropdownMenuItem(
-                            value: "email type",
-                            child: Text("emailType".tr()),
-                          ),
-                          DropdownMenuItem(
-                            value: "email",
-                            child: Text("email".tr()),
-                          ),
-                          DropdownMenuItem(
-                            value: "password",
-                            child: Text("password".tr()),
-                          ),
-                          DropdownMenuItem(
-                            value: "all",
-                            child: Text("all".tr()),
-                          ),
-                        ],
-                        onChanged: (newvalue) {
-                          state.updateSearchBy(newvalue!);
-                        }),
+                      value: state.searchBy,
+                      items: [
+                        DropdownMenuItem(
+                          value: "email type",
+                          child: Text("emailType".tr()),
+                        ),
+                        DropdownMenuItem(
+                          value: "email",
+                          child: Text("email".tr()),
+                        ),
+                        DropdownMenuItem(
+                          value: "password",
+                          child: Text("password".tr()),
+                        ),
+                        DropdownMenuItem(value: "all", child: Text("all".tr())),
+                      ],
+                      onChanged: (newvalue) {
+                        state.updateSearchBy(newvalue!);
+                      },
+                    ),
                   ),
                 ],
               ),
@@ -354,33 +440,37 @@ class _SettingsPageState extends State<SettingsPage> {
                 children: [
                   Text("language".tr()),
                   Selector<LocaleState, Locale>(
-                      selector: (context, state) => state.currentLocale,
-                      builder: (context, currentLocale, child) {
-                        return DropdownButton<Locale>(
-                          value: context.locale,
-                          items: context.supportedLocales
-                              .map((local) => DropdownMenuItem(
-                                  value: local,
-                                  child: Text(local.languageCode)))
-                              .toList(),
-                          onChanged: (Locale? value) {
-                            context.read<LocaleState>().currentLocale = value;
-                            context.setLocale(value!);
-                          },
-                        );
-                      })
+                    selector: (context, state) => state.currentLocale,
+                    builder: (context, currentLocale, child) {
+                      return DropdownButton<Locale>(
+                        value: context.locale,
+                        items: context.supportedLocales
+                            .map(
+                              (local) => DropdownMenuItem(
+                                value: local,
+                                child: Text(local.languageCode.toUpperCase()),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (Locale? value) {
+                          context.read<LocaleState>().currentLocale = value;
+                          context.setLocale(value!);
+                        },
+                      );
+                    },
+                  ),
                 ],
               ),
 
               // backups
               const SizedBox(height: 20),
+              Text("backups".tr(), style: titleStyle),
               Text(
-                "backups".tr(),
-                style: titleStyle,
+                "backup_details".tr(),
+                style: const TextStyle(
+                  color: Color.fromARGB(179, 128, 127, 127),
+                ),
               ),
-              Text("backup_details".tr(),
-                  style: const TextStyle(
-                      color: Color.fromARGB(179, 128, 127, 127))),
               const SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,

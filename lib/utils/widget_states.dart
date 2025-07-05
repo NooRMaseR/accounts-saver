@@ -140,8 +140,8 @@ class AccountsState extends ChangeNotifier {
 
   void dbAddAccount(String title, String email, String password) async {
     int id = await db.addAccount('''
-        INSERT INTO "accounts" (`Title`, `Email`, `Password`) VALUES ("$title", "$email", "$password")
-        ''');
+        INSERT INTO "accounts" (`Title`, `Email`, `Password`) VALUES (?, ?, ?)
+        ''', args: [title, email, password]);
     addAccount(Account(id: id, title: title, email: email, password: password));
   }
 
@@ -157,8 +157,8 @@ class AccountsState extends ChangeNotifier {
 
   void dbRemoveAccount(Account account) async {
     await db.deleteAccount('''
-      DELETE FROM "accounts" WHERE (id=${account.id})
-      ''');
+      DELETE FROM accounts WHERE id = ?
+      ''', args: [account.id]);
     removeAccount(account.id);
   }
 
@@ -167,12 +167,11 @@ class AccountsState extends ChangeNotifier {
     filterdAccounts = _accounts;
   }
 
-  void dbUpdateAccount(
-      String title, String email, String password, Account oldAccount) async {
+  void dbUpdateAccount(String title, String email, String password, Account oldAccount) async {
     await db.updateAccount('''
-        UPDATE accounts SET "Email"="$email", "Title"="$title", Password="$password"
-        WHERE "Email"="${oldAccount.email}" AND "Password"="${oldAccount.password}" AND "Title"="${oldAccount.title}"
-        ''');
+        UPDATE accounts SET Email = ?, Title = ?, Password = ?
+        WHERE Email = ? AND Password = ? AND Title = ?
+        ''', args: [email, title, password, oldAccount.email, oldAccount.password, oldAccount.title]);
     updateAccount(oldAccount.id, title, email, password);
   }
 

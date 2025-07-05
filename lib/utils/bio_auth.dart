@@ -10,9 +10,9 @@ class BioAuth {
     bool authenticated = false;
     try {
       authenticated = await _auth.authenticate(
-          localizedReason: "auth".tr(),
-          options: const AuthenticationOptions(
-              stickyAuth: true, useErrorDialogs: true));
+        localizedReason: "auth".tr(),
+        options: const AuthenticationOptions(stickyAuth: true, useErrorDialogs: true)
+      );
     } catch (e) {
       authenticated = false;
     }

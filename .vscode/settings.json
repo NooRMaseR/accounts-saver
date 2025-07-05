@@ -1,0 +1,14 @@
+{
+    "runTerminalCommand.commands": [
+        {
+            "command": "flutter build apk --split-per-abi --no-tree-shake-icons",
+            "auto": true,
+            "group": "Flutter"
+        },
+        {
+            "command": "flutter build appbundle --no-tree-shake-icons",
+            "auto": true,
+            "group": "Flutter"
+        }
+    ]
+}

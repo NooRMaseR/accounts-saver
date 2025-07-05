@@ -27,7 +27,7 @@ class _AccountCardState extends State<AccountCard> {
   ValueNotifier<bool> accountDetailsHidden = ValueNotifier<bool>(true);
   final String hiddenCode = "*****";
   final BioAuth authintecation = BioAuth();
-  final ExpansionTileController cardController = ExpansionTileController();
+  final ExpansibleController cardController = ExpansibleController();
   bool isExpanded = false;
 
   Future<bool> authinticatedSuccessfully() async =>
