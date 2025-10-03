@@ -1,24 +1,43 @@
+import 'dart:io';
+
 import 'package:accounts_saver/components/custom_textfiled.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:accounts_saver/utils/widget_states.dart';
+import 'package:accounts_saver/generated/l10n.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 
-class AddAccountPage extends StatelessWidget {
+class AddAccountPage extends StatefulWidget {
   const AddAccountPage({super.key});
 
-  void onAdd(
-      BuildContext context, String title, String email, String password) {
-    if (title.isNotEmpty && email.isNotEmpty && password.isNotEmpty) {
+  @override
+  State<AddAccountPage> createState() => _AddAccountPageState();
+}
+
+class _AddAccountPageState extends State<AddAccountPage> {
+  final TextEditingController titleController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    titleController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
+  void onAdd() {
+    if (titleController.text.isNotEmpty && emailController.text.isNotEmpty && passwordController.text.isNotEmpty) {
       AccountsState accountsState = context.read<AccountsState>();
       if (accountsState.accounts.isEmpty) {
         accountsState.doRefresh = true;
       }
-      accountsState.dbAddAccount(title, email, password);
+      accountsState.dbAddAccount(titleController.text, emailController.text, passwordController.text);
       Navigator.of(context).pop();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text("fill_missing_fileds".tr()),
+        content: Text(S.of(context).fill_missing_fileds),
         showCloseIcon: true,
       ));
     }
@@ -26,13 +45,10 @@ class AddAccountPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final TextEditingController titleController = TextEditingController();
-    final TextEditingController emailController = TextEditingController();
-    final TextEditingController passwordController = TextEditingController();
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("add_account".tr()),
+        title: Text(S.of(context).add_account),
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -42,7 +58,7 @@ class AddAccountPage extends StatelessWidget {
             // title
             CustomTextfiled(
               controller: titleController,
-              label: "emailType".tr(),
+              label: S.of(context).emailType,
             ),
             const SizedBox(height: 20),
 
@@ -50,36 +66,38 @@ class AddAccountPage extends StatelessWidget {
             CustomTextfiled(
               controller: emailController,
               keyboardType: TextInputType.emailAddress,
-              label: "email".tr(),
+              label: S.of(context).email,
             ),
             const SizedBox(height: 20),
 
             // password
             CustomTextfiled(
               controller: passwordController,
-              label: "password".tr(),
+              label: S.of(context).password,
+              action: TextInputAction.done,
+              onSubmit: (_) => onAdd(),
             ),
             const SizedBox(height: 50),
 
             // send button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => onAdd(context, titleController.text,
-                    emailController.text, passwordController.text),
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10))),
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
+            Platform.isIOS ? CupertinoButton.filled(
+              onPressed: () => onAdd(),
+              child: Text(
+                S.of(context).add_account,
+                style: const TextStyle(fontSize: 20, color: Colors.white),
+              ),
+            ) : ElevatedButton(
+                  onPressed: () => onAdd(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadiusGeometry.circular(13)),
+                    padding: EdgeInsets.all(20)
+                  ),
                   child: Text(
-                    "add_account".tr(),
+                    S.of(context).add_account,
                     style: const TextStyle(fontSize: 20, color: Colors.white),
                   ),
-                ),
-              ),
-            )
+                )
           ],
         ),
       ),

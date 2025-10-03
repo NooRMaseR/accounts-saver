@@ -1,13 +1,14 @@
 import 'package:accounts_saver/components/custom_elevated_button.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:accounts_saver/utils/widget_states.dart';
+import 'package:accounts_saver/generated/l10n.dart';
 import 'package:accounts_saver/utils/bio_auth.dart';
 import 'package:accounts_saver/models/account.dart';
 import 'package:accounts_saver/utils/sql.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'dart:io';
 
@@ -61,7 +62,7 @@ class _SettingsPageState extends State<SettingsPage> {
         context.read<AccountSecurity>().updateBioActive(false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("set_phone_password".tr()),
+            content: Text(S.of(context).set_phone_password),
             showCloseIcon: true,
           ),
         );
@@ -82,7 +83,10 @@ class _SettingsPageState extends State<SettingsPage> {
       }
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("set_phone_password".tr()), showCloseIcon: true),
+        SnackBar(
+          content: Text(S.of(context).set_phone_password),
+          showCloseIcon: true,
+        ),
       );
     }
   }
@@ -117,7 +121,7 @@ class _SettingsPageState extends State<SettingsPage> {
       if (s != null && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("backup_successfully".tr()),
+            content: Text(S.of(context).backup_successfully),
             showCloseIcon: true,
           ),
         );
@@ -126,21 +130,21 @@ class _SettingsPageState extends State<SettingsPage> {
       showDialog(
         context: context,
         builder: (context) => AlertDialog.adaptive(
-          title: Text("need_storage_permission".tr()),
-          content: Text("need_storage_permission_details".tr()),
+          title: Text(S.of(context).need_storage_permission),
+          content: Text(S.of(context).need_storage_permission_details),
           actions: [
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text("cancel".tr()),
+              child: Text(S.of(context).cancel),
             ),
             ElevatedButton(
               onPressed: () async {
                 Navigator.of(context).pop();
                 await openAppSettings();
               },
-              child: Text("open_settings".tr()),
+              child: Text(S.of(context).open_settings),
             ),
           ],
         ),
@@ -159,14 +163,14 @@ class _SettingsPageState extends State<SettingsPage> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("backup_restored_successfully".tr()),
+            content: Text(S.of(context).backup_restored_successfully),
             showCloseIcon: true,
           ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("backup_restored_failed".tr()),
+            content: Text(S.of(context).backup_restored_failed),
             showCloseIcon: true,
           ),
         );
@@ -183,7 +187,7 @@ class _SettingsPageState extends State<SettingsPage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("backup_restored_failed".tr()),
+          content: Text(S.of(context).backup_restored_failed),
           showCloseIcon: true,
         ),
       );
@@ -201,7 +205,7 @@ class _SettingsPageState extends State<SettingsPage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("backup_restored_failed".tr()),
+          content: Text(S.of(context).backup_restored_failed),
           showCloseIcon: true,
         ),
       );
@@ -227,13 +231,13 @@ class _SettingsPageState extends State<SettingsPage> {
           showDialog(
             context: context,
             builder: (context) => AlertDialog.adaptive(
-              title: Text("dlg_on_restore_title".tr()),
-              content: Text("dlg_on_restore_details".tr()),
+              title: Text(S.of(context).dlg_on_restore_title),
+              content: Text(S.of(context).dlg_on_restore_details),
               actionsAlignment: MainAxisAlignment.start,
               actions: [
                 ElevatedButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: Text("cancel".tr()),
+                  child: Text(S.of(context).cancel),
                 ),
                 ElevatedButton(
                   onPressed: () async {
@@ -241,7 +245,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     await replaceOnRestore(fileContent);
                   },
                   child: Text(
-                    "replace".tr(),
+                    S.of(context).replace,
                     style: TextStyle(color: Colors.red),
                   ),
                 ),
@@ -250,7 +254,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     Navigator.of(context).pop();
                     await addMoreOnRestore(fileContent);
                   },
-                  child: Text("append".tr()),
+                  child: Text(S.of(context).append),
                 ),
               ],
             ),
@@ -259,12 +263,12 @@ class _SettingsPageState extends State<SettingsPage> {
           showDialog(
             context: context,
             builder: (context) => AlertDialog.adaptive(
-              title: Text("empty_file".tr()),
-              content: Text("empty_file_details".tr()),
+              title: Text(S.of(context).empty_file),
+              content: Text(S.of(context).empty_file_details),
               actions: [
                 ElevatedButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: Text("ok".tr()),
+                  child: Text(S.of(context).ok),
                 ),
               ],
             ),
@@ -275,21 +279,21 @@ class _SettingsPageState extends State<SettingsPage> {
       showDialog(
         context: context,
         builder: (context) => AlertDialog.adaptive(
-          title: Text("need_storage_permission".tr()),
-          content: Text("need_storage_permission_details".tr()),
+          title: Text(S.of(context).need_storage_permission),
+          content: Text(S.of(context).need_storage_permission_details),
           actions: [
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text("cancel".tr()),
+              child: Text(S.of(context).cancel),
             ),
             ElevatedButton(
               onPressed: () async {
                 Navigator.of(context).pop();
                 await openAppSettings();
               },
-              child: Text("open_settings".tr()),
+              child: Text(S.of(context).open_settings),
             ),
           ],
         ),
@@ -304,7 +308,7 @@ class _SettingsPageState extends State<SettingsPage> {
       fontWeight: FontWeight.bold,
     );
     return Scaffold(
-      appBar: AppBar(title: Text("settings".tr()), centerTitle: true),
+      appBar: AppBar(title: Text(S.of(context).settings), centerTitle: true),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: SingleChildScrollView(
@@ -312,7 +316,7 @@ class _SettingsPageState extends State<SettingsPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               // themes
-              Text("themes".tr(), style: titleStyle),
+              Text(S.of(context).themes, style: titleStyle),
               Selector<ThemeState, ThemeMode>(
                 selector: (context, themeState) => themeState.themeMode,
                 builder: (context, currentTheme, child) => Row(
@@ -325,7 +329,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             ? Colors.blue
                             : Colors.grey,
                       ),
-                      label: Text("system".tr()),
+                      label: Text(S.of(context).system),
                       selected: currentTheme == ThemeMode.system,
                       onSelected: (value) {
                         context.read<ThemeState>().updateTheme(
@@ -341,7 +345,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             ? Colors.blue
                             : Colors.grey,
                       ),
-                      label: Text("light".tr()),
+                      label: Text(S.of(context).light),
                       selected: currentTheme == ThemeMode.light,
                       onSelected: (value) {
                         context.read<ThemeState>().updateTheme(
@@ -357,7 +361,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             ? Colors.blue
                             : Colors.grey,
                       ),
-                      label: Text("dark".tr()),
+                      label: Text(S.of(context).dark),
                       selected: currentTheme == ThemeMode.dark,
                       onSelected: (value) {
                         context.read<ThemeState>().updateTheme(
@@ -372,11 +376,11 @@ class _SettingsPageState extends State<SettingsPage> {
 
               // privacy Settings
               const SizedBox(height: 20),
-              Text("privacy".tr(), style: titleStyle),
+              Text(S.of(context).privacy, style: titleStyle),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text("use_bio".tr()),
+                  Text(S.of(context).use_bio),
                   Selector<AccountSecurity, bool>(
                     selector: (context, state) => state.isBioActive,
                     builder: (context, isBioActive, child) =>
@@ -387,7 +391,7 @@ class _SettingsPageState extends State<SettingsPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
-                  Text("hide_acc".tr()),
+                  Text(S.of(context).hide_acc),
                   Selector<AccountSecurity, bool>(
                     selector: (context, state) => state.isDetailsHidden,
                     builder: (context, isDetailsHidden, child) =>
@@ -401,28 +405,31 @@ class _SettingsPageState extends State<SettingsPage> {
 
               // Search Settings
               const SizedBox(height: 20),
-              Text("search_settings".tr(), style: titleStyle),
+              Text(S.of(context).search_settings, style: titleStyle),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
-                  Text("search_by".tr()),
+                  Text(S.of(context).search_by),
                   Consumer<SearchByState>(
                     builder: (context, state, child) => DropdownButton(
                       value: state.searchBy,
                       items: [
                         DropdownMenuItem(
                           value: "email type",
-                          child: Text("emailType".tr()),
+                          child: Text(S.of(context).emailType),
                         ),
                         DropdownMenuItem(
                           value: "email",
-                          child: Text("email".tr()),
+                          child: Text(S.of(context).email),
                         ),
                         DropdownMenuItem(
                           value: "password",
-                          child: Text("password".tr()),
+                          child: Text(S.of(context).password),
                         ),
-                        DropdownMenuItem(value: "all", child: Text("all".tr())),
+                        DropdownMenuItem(
+                          value: "all",
+                          child: Text(S.of(context).all),
+                        ),
                       ],
                       onChanged: (newvalue) {
                         state.updateSearchBy(newvalue!);
@@ -434,17 +441,20 @@ class _SettingsPageState extends State<SettingsPage> {
 
               // language Settings
               const SizedBox(height: 20),
-              Text("language_settings".tr(), style: titleStyle), // add trans
+              Text(
+                S.of(context).language_settings,
+                style: titleStyle,
+              ), // add trans
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text("language".tr()),
-                  Selector<LocaleState, Locale>(
+                  Text(S.of(context).language),
+                  Selector<AccountSecurity, Locale>(
                     selector: (context, state) => state.currentLocale,
                     builder: (context, currentLocale, child) {
                       return DropdownButton<Locale>(
-                        value: context.locale,
-                        items: context.supportedLocales
+                        value: Locale(Intl.getCurrentLocale()),
+                        items: S.delegate.supportedLocales
                             .map(
                               (local) => DropdownMenuItem(
                                 value: local,
@@ -453,9 +463,8 @@ class _SettingsPageState extends State<SettingsPage> {
                             )
                             .toList(),
                         onChanged: (Locale? value) {
-                          context.read<LocaleState>().currentLocale = value;
-                          context.setLocale(value!);
-                        },
+                          context.read<AccountSecurity>().currentLocale = value;
+                        }
                       );
                     },
                   ),
@@ -464,9 +473,9 @@ class _SettingsPageState extends State<SettingsPage> {
 
               // backups
               const SizedBox(height: 20),
-              Text("backups".tr(), style: titleStyle),
+              Text(S.of(context).backups, style: titleStyle),
               Text(
-                "backup_details".tr(),
+                S.of(context).backup_details,
                 style: const TextStyle(
                   color: Color.fromARGB(179, 128, 127, 127),
                 ),
@@ -478,14 +487,14 @@ class _SettingsPageState extends State<SettingsPage> {
                   // backup
                   CustomElevatedButton(
                     onPressed: backup,
-                    buttonLabel: Text("backup".tr()),
+                    buttonLabel: Text(S.of(context).backup),
                     icon: const Icon(Icons.backup),
                   ),
 
                   // restore backup
                   CustomElevatedButton(
                     onPressed: restoreBackup,
-                    buttonLabel: Text("restore_backup".tr()),
+                    buttonLabel: Text(S.of(context).restore_backup),
                     icon: const Icon(Icons.settings_backup_restore),
                   ),
                 ],
