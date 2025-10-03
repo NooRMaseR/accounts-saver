@@ -26,8 +26,14 @@
   "cancel": "Cancel",
   "are_you_sure": "Are you Sure ?",
   "delete_warning": "Are you Sure You Want To Delete This Account, You won't be able to restore it.",
-  "success_email_copy": "Email Successfully Copied.",
-  "success_password_copy": "Password Successfully Copied.",
+  "success_copy": "{successType} Successfully Copied.",
+  "@success_copy": {
+    "placeholders": {
+      "successType": {
+        "type": "String"
+      }
+    }
+  },
   "need_storage_permission": "Permission Needed",
   "need_storage_permission_details": "This App Need The Premission To Access the Storage to get/create backup file, please accept it",
   "open_settings": "Open App Settings",

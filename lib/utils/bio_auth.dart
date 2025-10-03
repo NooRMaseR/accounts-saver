@@ -1,4 +1,4 @@
-import 'package:easy_localization/easy_localization.dart';
+import 'package:accounts_saver/generated/l10n.dart';
 import 'package:local_auth/local_auth.dart';
 
 class BioAuth {
@@ -10,7 +10,7 @@ class BioAuth {
     bool authenticated = false;
     try {
       authenticated = await _auth.authenticate(
-        localizedReason: "auth".tr(),
+        localizedReason: S.current.auth,
         options: const AuthenticationOptions(stickyAuth: true, useErrorDialogs: true)
       );
     } catch (e) {

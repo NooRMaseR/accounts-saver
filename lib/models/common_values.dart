@@ -15,6 +15,9 @@ enum SharedPrefsKeys {
   /// a Key to check if the biomitric when app open is enabled or not
   biometric("bio"),
 
+  /// a Key to check the saved locale 
+  locale("locale"),
+
   /// a Key to check if the account details are hidden or not
   hideAccountDetails("hide_details");
 

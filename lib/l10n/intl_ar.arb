@@ -26,7 +26,14 @@
   "cancel": "الغاء",
   "are_you_sure": "هل انت متأكد ؟",
   "delete_warning": "هل انت متأكد انك تريد حذف هذا الحساب, لن تستطيع استعادته مجددا.",
-  "success_email_copy": "تم نسخ الحساب بنجاح.",
+  "success_copy": "تم نسخ {successType, select, email {الحساب}, password {كلمة المرور}, other {غير معروف}} بنجاح.",
+  "@success_copy": {
+    "placeholders": {
+      "successType": {
+        "type": "String"
+      }
+    }
+  },
   "success_password_copy": "تم نسخ كلمه المرور بنجاح.",
   "need_storage_permission": "الاذن مطلوب",
   "need_storage_permission_details": "هذا التطبيق يحتاج الى صلاحيات الوصول لمساحه التخزين لأستعاده\\انشاء ملف النسخ الاحتياطى",
@@ -38,7 +45,7 @@
   "dlg_on_restore_details": "هل تريد اضافه الحسابات الى الحسابات الحاليه ام استبدالها؟",
   "replace": "استبدال",
   "append": "اضافه",
-  "ok": "حسنا",
+  "ok": "حسناً",
   "empty_file": "الملف لا يوجد به محتوى",
   "empty_file_details": "الملف لا يوجد به محتوى, فشل استعاده النسخه الاحتياطيه",
   "show": "اظهار",
@@ -58,5 +65,4 @@
   "language": "اللغه",
   "en": "الانجليزيه",
   "ar": "العربيه"
-
 }

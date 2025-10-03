@@ -1,7 +1,7 @@
 import 'package:accounts_saver/components/custom_elevated_button.dart';
 import 'package:accounts_saver/pages/edit_account_page.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:accounts_saver/utils/widget_states.dart';
+import 'package:accounts_saver/generated/l10n.dart';
 import 'package:accounts_saver/utils/bio_auth.dart';
 import 'package:accounts_saver/models/account.dart';
 import 'package:provider/provider.dart';
@@ -63,7 +63,7 @@ class _AccountCardState extends State<AccountCard> {
                 : widget.account.password));
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text("success_${type}_copy".tr()),
+            content: Text(S.of(context).success_copy(type)),
             showCloseIcon: true,
           ));
         }
@@ -71,7 +71,7 @@ class _AccountCardState extends State<AccountCard> {
     } else {
       Clipboard.setData(ClipboardData(text: widget.account.email));
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text("success_${type}_copy".tr()),
+        content: Text(S.of(context).success_copy(type)),
         showCloseIcon: true,
       ));
     }
@@ -123,7 +123,7 @@ class _AccountCardState extends State<AccountCard> {
                         curve: Curves.easeOut,
                         duration: const Duration(milliseconds: 600)),
                     title: Text(
-                      "${"emailType".tr()}: ${widget.account.title}",
+                      "${S.of(context).emailType}: ${widget.account.title}",
                       style: widget.textStyle,
                     ),
                     subtitle: ValueListenableBuilder(
@@ -132,11 +132,11 @@ class _AccountCardState extends State<AccountCard> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "${"email".tr()}: ${widget.accountSecurityEnabled && isHidden ? hiddenCode : widget.account.email}",
+                            "${S.of(context).email}: ${widget.accountSecurityEnabled && isHidden ? hiddenCode : widget.account.email}",
                             style: widget.textStyle,
                           ),
                           Text(
-                            "${"password".tr()}: ${widget.accountSecurityEnabled && isHidden ? hiddenCode : widget.account.password}",
+                            "${S.of(context).password}: ${widget.accountSecurityEnabled && isHidden ? hiddenCode : widget.account.password}",
                             style: widget.textStyle,
                           ),
                         ],
@@ -166,13 +166,13 @@ class _AccountCardState extends State<AccountCard> {
                       children: <CustomElevatedButton>[
                         CustomElevatedButton(
                           onPressed: () => copy(widget.account.email, "email"),
-                          buttonLabel: const Text("copy_email").tr(),
+                          buttonLabel: Text(S.of(context).copy_email),
                           icon: const Icon(Icons.email_outlined),
                         ),
                         CustomElevatedButton(
                           onPressed: () =>
                               copy(widget.account.password, "password"),
-                          buttonLabel: Text("copy_password".tr()),
+                          buttonLabel: Text(S.of(context).copy_password),
                           icon: const Icon(Icons.password),
                         ),
                       ],
@@ -198,7 +198,7 @@ class _AccountCardState extends State<AccountCard> {
                                       account: widget.account)));
                             }
                           },
-                          buttonLabel: const Text("edit").tr(),
+                          buttonLabel: Text(S.of(context).edit),
                           icon: const Icon(Icons.edit),
                         ),
                         CustomElevatedButton(
@@ -206,12 +206,12 @@ class _AccountCardState extends State<AccountCard> {
                             showDialog(
                                 context: context,
                                 builder: (context) => AlertDialog.adaptive(
-                                      title: Text("are_you_sure".tr()),
-                                      content: Text("delete_warning".tr()),
+                                      title: Text(S.of(context).are_you_sure),
+                                      content: Text(S.of(context).delete_warning),
                                       actions: [
                                         CustomElevatedButton(
                                             buttonLabel: Text(
-                                              "delete".tr(),
+                                              S.of(context).delete,
                                               style: const TextStyle(
                                                   color: Colors.red),
                                             ),
@@ -227,14 +227,14 @@ class _AccountCardState extends State<AccountCard> {
                                               }
                                             }),
                                         CustomElevatedButton(
-                                            buttonLabel: Text("cancel".tr()),
+                                            buttonLabel: Text(S.of(context).cancel),
                                             onPressed: () =>
                                                 Navigator.of(context).pop()),
                                       ],
                                     ));
                           },
                           buttonLabel: Text(
-                            "delete".tr(),
+                            S.of(context).delete,
                             style: const TextStyle(color: Colors.red),
                           ),
                           icon: const Icon(
@@ -253,8 +253,8 @@ class _AccountCardState extends State<AccountCard> {
                                       buttonLabel: Text(
                                           widget.accountSecurityEnabled &&
                                                   isHidden
-                                              ? "show".tr()
-                                              : "hide".tr()),
+                                              ? S.of(context).show
+                                              : S.of(context).hide),
                                       onPressed: authToDisplayText)
                                 ])),
                   ],

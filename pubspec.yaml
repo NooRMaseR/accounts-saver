@@ -1,5 +1,6 @@
 name: accounts_saver
-description: "an Account Saver For Saving Account locally, no need for internet for security."
+description: "an Account Saver For Saving Account locally, no need for internet for
+  security."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -16,7 +17,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.1.4+14
+version: 1.1.4+2
 
 environment:
   sdk: ^3.8.1
@@ -29,6 +30,9 @@ environment:
 # versions available, run `flutter pub outdated`.
 dependencies:
   flutter:
+    sdk: flutter
+  
+  flutter_localizations:
     sdk: flutter
 
   # The following adds the Cupertino Icons font to your application.
@@ -44,11 +48,11 @@ dependencies:
   flutter_native_splash: ^2.4.6
   shared_preferences: ^2.5.3
   flutter_launcher_icons: ^0.14.4
-  easy_localization: ^3.0.7+1
   provider: ^6.1.5
   sqflite_common_ffi: ^2.3.6
+  intl: ^0.20.2
 
-flutter_launcher_icons: 
+flutter_launcher_icons:
   android: true
   ios: true
   image_path: assets/logo-splash.png
@@ -80,7 +84,6 @@ dev_dependencies:
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
-
 # The following section is specific to Flutter packages.
 flutter:
 
@@ -92,14 +95,10 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/logo.png
-    - assets/translations/
-
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
-
   # For details regarding adding assets from package dependencies, see
   # https://flutter.dev/to/asset-from-package
-
   # To add custom fonts to your application, add a fonts section here,
   # in this "flutter" section. Each entry in this list should have a
   # "family" key with the font family name, and a "fonts" key with a
@@ -119,3 +118,5 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+flutter_intl:
+  enabled: true

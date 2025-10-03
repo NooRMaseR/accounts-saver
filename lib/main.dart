@@ -1,9 +1,10 @@
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:accounts_saver/models/common_values.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:accounts_saver/utils/widget_states.dart';
 import 'package:accounts_saver/pages/accounts_page.dart';
 import 'package:accounts_saver/pages/auth_page.dart';
+import 'package:accounts_saver/generated/l10n.dart';
 import 'package:accounts_saver/utils/bio_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +12,10 @@ import 'package:flutter/material.dart';
 // Themes
 final ThemeData lightTheme = ThemeData(
   colorScheme: const ColorScheme.light(
-      primary: Colors.blue, secondary: Colors.white, tertiary: Colors.black),
+    primary: Colors.blue,
+    secondary: Colors.white,
+    tertiary: Colors.black,
+  ),
   useMaterial3: true,
 );
 
@@ -24,28 +28,18 @@ final ThemeData darkTheme = ThemeData(
   useMaterial3: true,
 );
 
-void main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  await EasyLocalization.ensureInitialized();
   runApp(
     MultiProvider(
-        providers: [
-          ChangeNotifierProvider(create: (context) => ThemeState()),
-          ChangeNotifierProvider(create: (context) => AccountSecurity()),
-          ChangeNotifierProvider(create: (context) => AccountsState()),
-          ChangeNotifierProvider(create: (context) => SearchByState()),
-          ChangeNotifierProvider(create: (context) => CurrentExpandedAccount()),
-          ChangeNotifierProvider(create: (context) => LocaleState()),
-        ],
-        child: EasyLocalization(
-          supportedLocales: const <Locale>[
-            Locale("en", "US"),
-            Locale("ar", "EG"),
-          ],
-          path: "assets/translations",
-          fallbackLocale: const Locale("en", "US"),
-          child: const MyApp()
-        )
+      providers: [
+        ChangeNotifierProvider(create: (context) => ThemeState()),
+        ChangeNotifierProvider(create: (context) => AccountSecurity()),
+        ChangeNotifierProvider(create: (context) => AccountsState()),
+        ChangeNotifierProvider(create: (context) => SearchByState()),
+        ChangeNotifierProvider(create: (context) => CurrentExpandedAccount()),
+      ],
+      child: const MyApp(),
     ),
   );
 }
@@ -64,36 +58,50 @@ class _MyAppState extends State<MyApp> {
 
   @override
   void initState() {
-    super.initState();
     initData();
+    super.initState();
   }
 
   void initData() async {
-    canAuth = await _auth.canAuthintecate();
-    final SharedPreferences data = await SharedPreferences.getInstance();
-    final List<String> storageLocale = (data.getString("locale") ?? "en_US").split("_");
-    isBioActive = data.getBool(SharedPrefsKeys.biometric.value) ?? false;
-    if (!mounted) return;
-    context.read<LocaleState>().currentLocale = Locale(storageLocale[0], storageLocale[1]);
-    setState(() {
-      Locale(storageLocale[0], storageLocale[1]);
-    });
+    List<Object> values = await Future.wait([
+      SharedPreferences.getInstance(),
+      _auth.canAuthintecate(),
+    ]);
+
+    final SharedPreferences data = values[0] as SharedPreferences;
+    if (mounted) {
+      setState(() {
+        canAuth = values[1] as bool;
+        isBioActive = data.getBool(SharedPrefsKeys.biometric.value) ?? false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Selector<ThemeState, ThemeMode>(
-      selector: (context, currentTheme) => currentTheme.themeMode,
-        builder: (consumertContext, themeState, child) => MaterialApp(
+      selector: (_, currentTheme) => currentTheme.themeMode,
+      builder: (_, themeState, _) => Selector<AccountSecurity, Locale>(
+        selector: (_, state) => state.currentLocale,
+        builder: (_, currentLocale, _) {
+          return MaterialApp(
             debugShowCheckedModeBanner: false,
-            localizationsDelegates: context.localizationDelegates,
-            supportedLocales: context.supportedLocales,
-            locale: context.locale,
+            localizationsDelegates: [
+              S.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: S.delegate.supportedLocales,
+            locale: currentLocale,
             title: 'Account Saver',
             theme: lightTheme,
             darkTheme: darkTheme,
             themeMode: themeState,
-            home: canAuth && isBioActive ? AuthPage() : AccountsPage(),
-    ));
+            home: canAuth && isBioActive ? AuthPage() : const AccountsPage(),
+          );
+        },
+      ),
+    );
   }
 }

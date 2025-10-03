@@ -1,5 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:accounts_saver/models/common_values.dart';
+import 'package:accounts_saver/generated/l10n.dart';
 import 'package:accounts_saver/models/account.dart';
 import 'package:accounts_saver/utils/sql.dart';
 import 'package:flutter/material.dart';
@@ -35,23 +36,31 @@ class ThemeState extends ChangeNotifier {
     _themeMode = newTheme;
     switch (_themeMode) {
       case ThemeMode.dark:
-        SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+        SystemChrome.setSystemUIOverlayStyle(
+          SystemUiOverlayStyle(
             statusBarColor: Colors.transparent,
-            systemNavigationBarColor: Colors.black.withValues(alpha: .91)));
+            systemNavigationBarColor: Colors.black.withValues(alpha: .91),
+          ),
+        );
 
       case ThemeMode.light:
-        SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+        SystemChrome.setSystemUIOverlayStyle(
+          const SystemUiOverlayStyle(
             statusBarColor: Colors.transparent,
-            systemNavigationBarColor: Colors.transparent));
+            systemNavigationBarColor: Colors.transparent,
+          ),
+        );
 
       default:
         Brightness brightness = MediaQuery.of(context).platformBrightness;
-        SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-          statusBarColor: Colors.transparent,
-          systemNavigationBarColor: brightness == Brightness.light
-              ? Colors.transparent
-              : Colors.black.withValues(alpha: .91),
-        ));
+        SystemChrome.setSystemUIOverlayStyle(
+          SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            systemNavigationBarColor: brightness == Brightness.light
+                ? Colors.transparent
+                : Colors.black.withValues(alpha: .91),
+          ),
+        );
     }
     notifyListeners();
   }
@@ -81,12 +90,23 @@ class SearchByState extends ChangeNotifier {
 }
 
 class AccountSecurity extends ChangeNotifier {
-  bool _bioActive = false;
-  bool _hideDetails = false;
+  late bool _bioActive;
+  late bool _hideDetails;
   late SharedPreferences _data;
 
   bool get isBioActive => _bioActive;
   bool get isDetailsHidden => _hideDetails;
+
+  Locale? _currentLocale = Locale("en");
+  Locale get currentLocale => _currentLocale!;
+  set currentLocale(Locale? newLocale) {
+    if (newLocale != null) {
+      _currentLocale = newLocale;
+      S.load(newLocale);
+      _data.setString(SharedPrefsKeys.locale.value, newLocale.languageCode);
+      notifyListeners();
+    }
+  }
 
   AccountSecurity() {
     _getData();
@@ -97,6 +117,9 @@ class AccountSecurity extends ChangeNotifier {
     _bioActive = _data.getBool(SharedPrefsKeys.biometric.value) ?? false;
     _hideDetails =
         _data.getBool(SharedPrefsKeys.hideAccountDetails.value) ?? false;
+    _currentLocale = Locale(
+      _data.getString(SharedPrefsKeys.locale.value) ?? "en",
+    );
     notifyListeners();
   }
 
@@ -138,10 +161,24 @@ class AccountsState extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> getData(BuildContext context) async {
+    _accounts.clear();
+    List<Map<String, Object?>> accountsFound = await db.getAccount(
+      'SELECT * FROM "accounts"',
+    );
+
+    addManyAccount(
+      accountsFound.map((account) => Account.fromObject(account)).toList(),
+    );
+  }
+
   void dbAddAccount(String title, String email, String password) async {
-    int id = await db.addAccount('''
+    int id = await db.addAccount(
+      '''
         INSERT INTO "accounts" (`Title`, `Email`, `Password`) VALUES (?, ?, ?)
-        ''', args: [title, email, password]);
+        ''',
+      args: [title, email, password],
+    );
     addAccount(Account(id: id, title: title, email: email, password: password));
   }
 
@@ -156,9 +193,12 @@ class AccountsState extends ChangeNotifier {
   }
 
   void dbRemoveAccount(Account account) async {
-    await db.deleteAccount('''
+    await db.deleteAccount(
+      '''
       DELETE FROM accounts WHERE id = ?
-      ''', args: [account.id]);
+      ''',
+      args: [account.id],
+    );
     removeAccount(account.id);
   }
 
@@ -167,11 +207,26 @@ class AccountsState extends ChangeNotifier {
     filterdAccounts = _accounts;
   }
 
-  void dbUpdateAccount(String title, String email, String password, Account oldAccount) async {
-    await db.updateAccount('''
+  void dbUpdateAccount(
+    String title,
+    String email,
+    String password,
+    Account oldAccount,
+  ) async {
+    await db.updateAccount(
+      '''
         UPDATE accounts SET Email = ?, Title = ?, Password = ?
         WHERE Email = ? AND Password = ? AND Title = ?
-        ''', args: [email, title, password, oldAccount.email, oldAccount.password, oldAccount.title]);
+        ''',
+      args: [
+        email,
+        title,
+        password,
+        oldAccount.email,
+        oldAccount.password,
+        oldAccount.title,
+      ],
+    );
     updateAccount(oldAccount.id, title, email, password);
   }
 
@@ -193,15 +248,5 @@ class CurrentExpandedAccount extends ChangeNotifier {
     Future.microtask(() {
       notifyListeners();
     });
-  }
-}
-
-class LocaleState extends ChangeNotifier {
-  Locale? _currentLocale = Locale("en", "US");
-
-  Locale get currentLocale => _currentLocale!;
-  set currentLocale(Locale? newLocale) {
-    _currentLocale = newLocale;
-    notifyListeners();
   }
 }

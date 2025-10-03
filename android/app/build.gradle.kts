@@ -8,7 +8,7 @@ plugins {
 android {
     namespace = "com.noormaser.accounts_saver"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = "29.0.13599879"
+    ndkVersion = "29.0.14033849"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

@@ -1,9 +1,9 @@
 import 'package:accounts_saver/components/custom_textfiled.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:accounts_saver/utils/widget_states.dart';
+import 'package:accounts_saver/generated/l10n.dart';
 import 'package:accounts_saver/models/account.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/material.dart';
 
 class EditAccountPage extends StatelessWidget {
   final Account account;
@@ -24,7 +24,7 @@ class EditAccountPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("edit_account".tr()),
+        title: Text(S.of(context).edit_account),
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -34,7 +34,7 @@ class EditAccountPage extends StatelessWidget {
             // title
             CustomTextfiled(
               controller: titleController,
-              label: "emailType".tr(),
+              label: S.of(context).emailType,
             ),
             const SizedBox(height: 20),
 
@@ -42,14 +42,14 @@ class EditAccountPage extends StatelessWidget {
             CustomTextfiled(
               controller: emailController,
               keyboardType: TextInputType.emailAddress,
-              label: "email".tr(),
+              label: S.of(context).email,
             ),
             const SizedBox(height: 20),
 
             // password
             CustomTextfiled(
               controller: passwordController,
-              label: "password".tr(),
+              label: S.of(context).password,
             ),
             const SizedBox(height: 50),
 
@@ -70,7 +70,7 @@ class EditAccountPage extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.all(20),
                   child: Text(
-                    "edit_complete".tr(),
+                    S.of(context).edit_complete,
                     style: const TextStyle(fontSize: 20, color: Colors.white),
                   ),
                 ),
